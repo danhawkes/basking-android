@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="Account" >
+        <EditTextPreference
+            android:defaultValue="a8da7cd573d12b14a0af9b11252de9d8@mailinator.com"
+            android:key="pref_username"
+            android:title="@string/username" />
+        <EditTextPreference
+            android:defaultValue="a8da7cd573d12b14a0af9b11252de9d8"
+            android:key="pref_password"
+            android:title="@string/password" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Sync" >
+        <EditTextPreference
+            android:key="pref_sync_dir"
+            android:title="@string/sync_directory" />
+    </PreferenceCategory>
+
+</PreferenceScreen>
