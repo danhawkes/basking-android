@@ -1,6 +1,6 @@
-package co.arcs.groove.basking;
+package co.arcs.groove.basking.pref;
 
-public class SettingsKeys {
+public class PreferenceKeys {
 
 	public static String SYNC_DIR = "pref_sync_dir";
 	public static String USERNAME = "pref_username";

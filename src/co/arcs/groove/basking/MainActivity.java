@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import co.arcs.groove.basking.R;
+import co.arcs.groove.basking.pref.PreferenceActivity;
 
 public class MainActivity extends Activity {
 
@@ -28,7 +29,7 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getItemId() == R.id.action_settings) {
-			startActivity(new Intent(this, SettingsActivity.class));
+			startActivity(new Intent(this, PreferenceActivity.class));
 			return true;
 		}
 		return false;

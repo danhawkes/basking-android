@@ -27,7 +27,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="co.arcs.groove.basking.SettingsActivity" android:label="@string/settings"/>
+        <activity
+            android:name="co.arcs.groove.basking.pref.PreferenceActivity"
+            android:label="@string/settings"
+            android:parentActivityName="co.arcs.groove.basking.MainActivity" >
+        </activity>
 
         <service android:name="co.arcs.groove.basking.BaskingSyncService" >
         </service>

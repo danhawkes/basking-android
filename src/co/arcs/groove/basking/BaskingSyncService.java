@@ -10,7 +10,7 @@ import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import co.arcs.android.util.MainThreadExecutorService;
-import co.arcs.groove.basking.Config;
+import co.arcs.groove.basking.pref.PreferenceKeys;
 import co.arcs.groove.basking.task.SyncTask.Outcome;
 
 import com.google.common.util.concurrent.FutureCallback;
@@ -55,9 +55,9 @@ public class BaskingSyncService extends Service {
 
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		Config config = new Config();
-		config.username = prefs.getString(SettingsKeys.USERNAME, null);
-		config.password = prefs.getString(SettingsKeys.PASSWORD, null);
-		config.syncDir = new File(prefs.getString(SettingsKeys.SYNC_DIR, null));
+		config.username = prefs.getString(PreferenceKeys.USERNAME, null);
+		config.password = prefs.getString(PreferenceKeys.PASSWORD, null);
+		config.syncDir = new File(prefs.getString(PreferenceKeys.SYNC_DIR, null));
 		service = new co.arcs.groove.basking.SyncService(config);
 		service.getEventBus().register(notificationManager);
 		syncOutcomeFuture = service.start();
