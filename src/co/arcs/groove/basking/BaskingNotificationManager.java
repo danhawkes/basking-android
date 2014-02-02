@@ -32,94 +32,116 @@ public class BaskingNotificationManager {
 	private final Context context;
 	private final NotificationManager notMan;
 
-	private int id;
-	private int iconId;
-	private PendingIntent viewPendingIntent;
-	private PendingIntent cancelPendingIntent;
-	private String title;
-	private String subtitle;
-	private String ticker;
-	private boolean showProgress;
-	private int progressPercent;
-	private boolean canCancel;
-	private boolean ongoing;
+	private final NotificationValueHolder ongoing = new NotificationValueHolder(
+			NOTIFICATION_ID_ONGOING);
+	private final NotificationValueHolder finished = new NotificationValueHolder(
+			NOTIFICATION_ID_FINISHED);
+
+	private static class NotificationValueHolder {
+
+		public NotificationValueHolder(int id) {
+			this.id = id;
+		}
+
+		final int id;
+		int iconId;
+		PendingIntent viewPendingIntent;
+		PendingIntent cancelPendingIntent;
+		String title;
+		String subtitle;
+		String ticker;
+		boolean showProgress;
+		int progressPercent;
+		boolean canCancel;
+		boolean ongoing;
+	}
 
 	public BaskingNotificationManager(Context context) {
 		this.context = context;
 		this.notMan = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-		this.id = NOTIFICATION_ID_ONGOING;
-		this.iconId = R.drawable.ic_menu_refresh;
-		this.viewPendingIntent = PendingIntent.getActivity(context, 0, new Intent(context,
+		ongoing.iconId = android.R.drawable.stat_notify_sync;
+		ongoing.viewPendingIntent = PendingIntent.getActivity(context, 0, new Intent(context,
 				MainActivity.class), Intent.FLAG_ACTIVITY_NEW_TASK);
-		this.cancelPendingIntent = PendingIntent.getService(context, 0,
+		ongoing.cancelPendingIntent = PendingIntent.getService(context, 0,
 				BaskingSyncService.newStopIntent(context), 0);
 
-		this.title = context.getString(R.string.notif_ongoing_title);
-		this.subtitle = null;
-		this.ticker = title;
-		this.showProgress = true;
-		this.progressPercent = 0;
-		this.canCancel = true;
-		this.ongoing = true;
+		ongoing.title = context.getString(R.string.notif_ongoing_title);
+		ongoing.subtitle = null;
+		ongoing.ticker = ongoing.title;
+		ongoing.showProgress = true;
+		ongoing.progressPercent = 0;
+		ongoing.canCancel = true;
+		ongoing.ongoing = true;
 	}
 
+	/**
+	 * Sets the sync future to be observed by the notification manager.
+	 */
 	void setSyncFuture(ListenableFuture<Outcome> syncFuture) {
 		Futures.addCallback(syncFuture, syncFutureCallback, MainThreadExecutorService.get());
 	}
 
-	Notification.Builder newNotification(Context context) {
+	public Notification.Builder newOngoingNotification(Context context) {
+		return newNotification(context, ongoing);
+	}
+
+	private Notification.Builder newNotification(Context context, NotificationValueHolder holder) {
 
 		Notification.Builder builder = new Notification.Builder(context);
-		builder.setSmallIcon(iconId);
-		builder.setContentTitle(title);
-		if (subtitle != null) {
-			builder.setContentText(subtitle);
+		builder.setSmallIcon(holder.iconId);
+		builder.setContentTitle(holder.title);
+		if (holder.subtitle != null) {
+			builder.setContentText(holder.subtitle);
 		}
-		builder.setTicker(ticker);
-		builder.setContentIntent(viewPendingIntent);
-		if (canCancel) {
+		builder.setTicker(holder.ticker);
+		builder.setContentIntent(holder.viewPendingIntent);
+		if (holder.canCancel) {
 			builder.addAction(android.R.drawable.ic_menu_close_clear_cancel,
-					context.getString(android.R.string.cancel), cancelPendingIntent);
+					context.getString(android.R.string.cancel), holder.cancelPendingIntent);
 		}
-		if (showProgress) {
-			builder.setProgress(100, progressPercent, false);
+		if (holder.showProgress) {
+			builder.setProgress(100, holder.progressPercent, false);
 		}
-		builder.setOngoing(ongoing);
+		builder.setOngoing(holder.ongoing);
 		return builder;
 	}
 
-	void update() {
-		notMan.notify(id, newNotification(context).build());
+	void updateOngoing() {
+		notMan.notify(ongoing.id, newNotification(context, ongoing).build());
+	}
+
+	void updateFinished() {
+		notMan.notify(finished.id, newNotification(context, finished).build());
 	}
 
 	// Query API for use information
 
 	@Subscribe
 	public void onEvent(GetSongsToSyncEvent.Started e) {
-		this.subtitle = context.getString(R.string.status_retrieving_profile);
-		update();
+		ongoing.subtitle = context.getString(R.string.status_retrieving_profile);
+		updateOngoing();
 	}
 
 	@Subscribe
 	public void onEvent(GetSongsToSyncEvent.ProgressChanged e) {
-		this.progressPercent = (int) e.percentage;
-		update();
+		ongoing.progressPercent = (int) e.percentage;
+		updateOngoing();
 	}
 
 	// Build sync plan
 
 	@Subscribe
 	public void onEvent(BuildSyncPlanEvent.Started e) {
-		this.progressPercent = 0;
-		this.subtitle = context.getString(R.string.status_building_sync_plan);
-		update();
+		ongoing.progressPercent = 0;
+		ongoing.subtitle = context.getString(R.string.status_building_sync_plan);
+		updateOngoing();
 	}
 
 	@Subscribe
 	public void onEvent(BuildSyncPlanEvent.ProgressChanged e) {
-		this.progressPercent = (int) e.percentage;
-		update();
+		ongoing.progressPercent = (int) e.percentage;
+		updateOngoing();
 	}
 
 	// Delete files
@@ -130,9 +152,9 @@ public class BaskingNotificationManager {
 	public void onEvent(DeleteFileEvent.Started e) {
 		if (!startedDeletion) {
 			startedDeletion = true;
-			this.progressPercent = 0;
-			this.subtitle = context.getString(R.string.status_deleting_items);
-			update();
+			ongoing.progressPercent = 0;
+			ongoing.subtitle = context.getString(R.string.status_deleting_items);
+			updateOngoing();
 		}
 	}
 
@@ -144,46 +166,42 @@ public class BaskingNotificationManager {
 
 	@Subscribe
 	public void onEvent(DownloadSongEvent.Started e) {
-		this.progressPercent = 0;
-		this.subtitle = context.getString(R.string.status_downloading_song, e.task.song.artistName,
-				e.task.song.name);
-		update();
+		ongoing.progressPercent = 0;
+		ongoing.subtitle = context.getString(R.string.status_downloading_song,
+				e.task.song.artistName, e.task.song.name);
+		updateOngoing();
 	}
 
 	@Subscribe
 	public void onEvent(DownloadSongEvent.ProgressChanged e) {
-		this.progressPercent = (int) e.percentage;
-		this.subtitle = context.getString(R.string.status_downloading_song, e.task.song.artistName,
-				e.task.song.name);
-		update();
+		ongoing.progressPercent = (int) e.percentage;
+		ongoing.subtitle = context.getString(R.string.status_downloading_song,
+				e.task.song.artistName, e.task.song.name);
+		updateOngoing();
 	}
 
 	// Generate playlist
 
 	@Subscribe
 	public void onEvent(GeneratePlaylistsEvent.Started e) {
-		this.subtitle = context.getString(R.string.status_generating_playlists);
-		this.progressPercent = 0;
-		update();
+		ongoing.subtitle = context.getString(R.string.status_generating_playlists);
+		ongoing.progressPercent = 0;
+		updateOngoing();
 	}
 
 	@Subscribe
 	public void onEvent(GeneratePlaylistsEvent.ProgressChanged e) {
-		this.progressPercent = (int) e.percentage;
-		update();
+		ongoing.progressPercent = (int) e.percentage;
+		updateOngoing();
 	}
 
 	// Outcome
-	
-	// TODO separate finished notification vars
 
 	private final FutureCallback<Outcome> syncFutureCallback = new FutureCallback<SyncTask.Outcome>() {
 
 		@Override
 		public void onSuccess(Outcome arg0) {
-			BaskingNotificationManager.this.id = NOTIFICATION_ID_FINISHED;
-			BaskingNotificationManager.this.ticker = context
-					.getString(R.string.notif_finished_success_ticker);
+			finished.ticker = context.getString(R.string.notif_finished_success_ticker);
 			String subtitle;
 			if ((arg0.downloaded + arg0.deleted) > 0) {
 				subtitle = context.getString(R.string.notif_finished_success_subtitle_changes,
@@ -191,19 +209,18 @@ public class BaskingNotificationManager {
 			} else {
 				subtitle = context.getString(R.string.notif_finished_success_subtitle_no_changes);
 			}
-			BaskingNotificationManager.this.subtitle = subtitle;
-			BaskingNotificationManager.this.title = context
-					.getString(R.string.notif_finished_success_title);
-			BaskingNotificationManager.this.showProgress = false;
-			BaskingNotificationManager.this.canCancel = false;
-			BaskingNotificationManager.this.ongoing = false;
-			update();
+			finished.subtitle = subtitle;
+			finished.title = context.getString(R.string.notif_finished_success_title);
+			finished.showProgress = false;
+			finished.canCancel = false;
+			finished.ongoing = false;
+			finished.iconId = android.R.drawable.stat_notify_sync_noanim;
+			updateFinished();
 		}
 
 		@Override
 		public void onFailure(Throwable arg0) {
-			BaskingNotificationManager.this.ticker = context
-					.getString(R.string.notif_finished_failure_ticker);
+			finished.ticker = context.getString(R.string.notif_finished_failure_ticker);
 			String subtitle;
 			arg0 = arg0.getCause();
 			if (arg0 instanceof IOException) {
@@ -211,14 +228,13 @@ public class BaskingNotificationManager {
 			} else {
 				subtitle = context.getString(R.string.notif_finished_failure_subtitle_unknown);
 			}
-			BaskingNotificationManager.this.subtitle = subtitle;
-			BaskingNotificationManager.this.title = context
-					.getString(R.string.notif_finished_failure_title);
-			BaskingNotificationManager.this.id = NOTIFICATION_ID_FINISHED;
-			BaskingNotificationManager.this.showProgress = false;
-			BaskingNotificationManager.this.canCancel = false;
-			BaskingNotificationManager.this.ongoing = false;
-			update();
+			finished.subtitle = subtitle;
+			finished.title = context.getString(R.string.notif_finished_failure_title);
+			finished.showProgress = false;
+			finished.canCancel = false;
+			finished.ongoing = false;
+			finished.iconId = R.drawable.stat_notify_sync_error;
+			updateFinished();
 		}
 	};
 }

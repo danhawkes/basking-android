@@ -72,7 +72,7 @@ public class BaskingSyncService extends Service {
 	}
 
 	private void moveToForeground() {
-		Notification notification = notificationManager.newNotification(getApplicationContext())
+		Notification notification = notificationManager.newOngoingNotification(getApplicationContext())
 				.build();
 		startForeground(BaskingNotificationManager.NOTIFICATION_ID_ONGOING, notification);
 	}
