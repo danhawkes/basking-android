@@ -1,0 +1,3 @@
+[submodule "file-selector"]
+	path = file-selector
+	url = git@github.com:danhawkes/file-selector.git

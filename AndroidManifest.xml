@@ -16,7 +16,7 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/BaskingTheme" >
+        android:theme="@style/ThemeBasking" >
         <activity
             android:name="co.arcs.groove.basking.MainActivity"
             android:label="@string/app_name"
@@ -35,6 +35,12 @@
 
         <service android:name="co.arcs.groove.basking.BaskingSyncService" >
         </service>
+
+        <activity
+            android:name="co.arcs.android.fileselector.FileSelectorActivity"
+            android:label="@string/sync_directory"
+            android:theme="@style/ThemeFileSelector.Dialog" >
+        </activity>
     </application>
 
 </manifest>

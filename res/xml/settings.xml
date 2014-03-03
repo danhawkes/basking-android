@@ -6,10 +6,10 @@
             android:dialogTitle="@string/login"
             android:title="@string/account" />
     </PreferenceCategory>
-    <PreferenceCategory android:title="Sync" >
+    <PreferenceCategory android:title="@string/sync" >
         <co.arcs.groove.basking.pref.SyncDirPreference
             android:key="pref_sync_dir"
-            android:title="@string/sync_directory" />
+            android:title="@string/directory" />
     </PreferenceCategory>
 
 </PreferenceScreen>
