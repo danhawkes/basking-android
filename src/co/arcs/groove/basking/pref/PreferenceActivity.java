@@ -13,8 +13,10 @@ public class PreferenceActivity extends Activity {
 		
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		
+		if (savedInstanceState == null) {
 		PreferenceFragment fragment = new PreferenceFragment();
 		getFragmentManager().beginTransaction().add(android.R.id.content, fragment, null).commit();
+		}
 	}
 	
 	@Override

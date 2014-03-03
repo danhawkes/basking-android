@@ -14,8 +14,11 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Fragment fragment = new MainFragment();
-		getFragmentManager().beginTransaction().add(android.R.id.content, fragment).commit();
+
+		if (savedInstanceState == null) {
+			Fragment fragment = new MainFragment();
+			getFragmentManager().beginTransaction().add(android.R.id.content, fragment).commit();
+		}
 
 	}
 
