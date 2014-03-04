@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.IBinder;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.preference.PreferenceManager;
 import co.arcs.android.util.MainThreadExecutorService;
 import co.arcs.groove.basking.pref.PreferenceKeys;
@@ -22,11 +24,13 @@ public class BaskingSyncService extends Service {
 	static final int COMMAND_START = 1;
 	static final int COMMAND_STOP = 2;
 	static final String EXTRA_COMMAND = "commmand";
+	private static final long WAKELOCK_TIMEOUT = 1000 * 60 * 60;
 
 	private final SyncBinder binder = new SyncBinder();
 	private BaskingNotificationManager notificationManager;
 	private co.arcs.groove.basking.SyncService service;
 	private ListenableFuture<Outcome> syncOutcomeFuture;
+	private WakeLock wakeLock;
 
 	@Override
 	public void onCreate() {
@@ -51,7 +55,6 @@ public class BaskingSyncService extends Service {
 	}
 
 	private void startSync() {
-		moveToForeground();
 
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		Config config = new Config();
@@ -63,17 +66,18 @@ public class BaskingSyncService extends Service {
 		syncOutcomeFuture = service.start();
 		notificationManager.setSyncFuture(syncOutcomeFuture);
 		Futures.addCallback(syncOutcomeFuture, syncOutcomeCallback, MainThreadExecutorService.get());
+		
+		moveToForeground();
+		acquireWakelock();
 	}
 
 	private void stopSync() {
-		moveToBackground();
-
 		syncOutcomeFuture.cancel(true);
 	}
 
 	private void moveToForeground() {
-		Notification notification = notificationManager.newOngoingNotification(getApplicationContext())
-				.build();
+		Notification notification = notificationManager.newOngoingNotification(
+				getApplicationContext()).build();
 		startForeground(BaskingNotificationManager.NOTIFICATION_ID_ONGOING, notification);
 	}
 
@@ -81,16 +85,28 @@ public class BaskingSyncService extends Service {
 		stopForeground(true);
 	}
 
+	private void acquireWakelock() {
+		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+		wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, EXTRA_COMMAND);
+		wakeLock.acquire(WAKELOCK_TIMEOUT);
+	}
+
+	private void releaseWakelock() {
+		wakeLock.release();
+	}
+
 	private FutureCallback<Outcome> syncOutcomeCallback = new FutureCallback<Outcome>() {
 
 		@Override
 		public void onSuccess(Outcome arg0) {
 			moveToBackground();
+			releaseWakelock();
 		}
 
 		@Override
 		public void onFailure(Throwable arg0) {
 			moveToBackground();
+			releaseWakelock();
 		}
 	};
 
