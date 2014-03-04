@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
-import co.arcs.groove.basking.R;
 
 public class MainFragment extends Fragment {
 
@@ -26,6 +25,12 @@ public class MainFragment extends Fragment {
 		super.onViewCreated(view, savedInstanceState);
 		syncButton = (Button) view.findViewById(R.id.sync_button);
 		syncButton.setOnClickListener(syncButtonOnClickListener);
+	}
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		syncButton.setEnabled(App.getPreferenceUtils().hasLoginCredentials());
 	}
 
 	private OnClickListener syncButtonOnClickListener = new OnClickListener() {

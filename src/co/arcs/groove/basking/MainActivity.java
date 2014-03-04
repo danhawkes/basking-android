@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import co.arcs.groove.basking.R;
 import co.arcs.groove.basking.pref.PreferenceActivity;
 
 public class MainActivity extends Activity {
@@ -19,7 +18,6 @@ public class MainActivity extends Activity {
 			Fragment fragment = new MainFragment();
 			getFragmentManager().beginTransaction().add(android.R.id.content, fragment).commit();
 		}
-
 	}
 
 	@Override
