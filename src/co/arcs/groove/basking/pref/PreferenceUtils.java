@@ -15,4 +15,8 @@ public class PreferenceUtils {
 	public boolean hasLoginCredentials() {
 		return prefs.getString(PreferenceKeys.USERNAME, null) != null;
 	}
+
+	public boolean backgroundSyncEnabled() {
+		return prefs.getBoolean(PreferenceKeys.BACKGROUND_SYNC, false);
+	}
 }

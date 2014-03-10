@@ -9,7 +9,7 @@ import android.util.AttributeSet;
 
 public class SyncDirPreference extends Preference {
 
-	interface Listener {
+	public interface Listener {
 
 		void onClickSyncDirPreference(SyncDirPreference preference);
 	}

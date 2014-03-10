@@ -80,6 +80,10 @@ public class LoginPreference extends DialogPreference {
 
 		usernameField.setText(username);
 		passwordField.setText(password);
+		
+		if (username != null) {
+			usernameField.setSelection(username.length());
+		}
 	}
 
 	@Override
