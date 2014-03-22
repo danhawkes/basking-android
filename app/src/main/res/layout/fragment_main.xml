@@ -1,0 +1,19 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/p16"
+    android:paddingLeft="@dimen/p16"
+    android:paddingRight="@dimen/p16"
+    android:paddingTop="@dimen/p16"
+    tools:context=".MainActivity" >
+
+    <Button
+        android:id="@+id/sync_button"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:text="@string/sync" />
+
+</RelativeLayout>

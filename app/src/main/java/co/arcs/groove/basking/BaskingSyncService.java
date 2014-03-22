@@ -1,0 +1,216 @@
+package co.arcs.groove.basking;
+
+import java.io.File;
+
+import javax.annotation.Nullable;
+
+import android.app.Notification;
+import android.app.Service;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.wifi.WifiManager;
+import android.net.wifi.WifiManager.WifiLock;
+import android.os.IBinder;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
+import android.preference.PreferenceManager;
+import android.util.Log;
+import co.arcs.android.util.MainThreadExecutorService;
+import co.arcs.groove.basking.pref.PreferenceKeys;
+import co.arcs.groove.basking.task.SyncTask.Outcome;
+
+import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.EventBus;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+
+public class BaskingSyncService extends Service {
+
+	public static final int COMMAND_START = 1;
+	public static final int COMMAND_STOP = 2;
+	public static final String EXTRA_COMMAND = "commmand";
+
+	private static final String TAG = BaskingSyncService.class.getSimpleName();
+
+	/**
+	 * A sync is expected to finish within half an hour. More than that, and
+	 * it's assumed to have gone wrong and its wakelock should be released.
+	 */
+	private static final long WAKELOCK_TIMEOUT = 1000 * 60 * 30;
+
+	private SyncService syncService;
+	private final SyncBinder binder = new SyncBinder();
+	private BaskingNotificationManager notificationManager;
+	private ListenableFuture<Outcome> syncOutcomeFuture;
+	private WakeLock wakeLock;
+	private WifiLock wifiLock;
+
+	@Override
+	public void onCreate() {
+		super.onCreate();
+		this.notificationManager = new BaskingNotificationManager(this);
+		this.syncService = new SyncService(new AsyncEventBus(MainThreadExecutorService.get()));
+	}
+
+	@Override
+	public IBinder onBind(Intent intent) {
+		return binder;
+	}
+
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		Log.d(TAG, "Started with flags: " + flags + ", startID: " + startId);
+		int command = intent.getIntExtra(EXTRA_COMMAND, -1);
+		if (command == COMMAND_START) {
+			Log.d(TAG, "Starting sync");
+			startSync();
+		} else if (command == COMMAND_STOP) {
+			Log.d(TAG, "Stopping sync");
+			stopSync();
+		}
+		return Service.START_NOT_STICKY;
+	}
+
+	@Override
+	public void onDestroy() {
+		// Cancel any running sync
+		if ((syncOutcomeFuture != null) && !syncOutcomeFuture.isDone()) {
+			syncOutcomeFuture.cancel(true);
+		}
+
+		// Release any held locks
+		releaseWakelock();
+		releaseWifiLock();
+
+		super.onDestroy();
+	}
+
+	private void startSync() {
+		// Load config
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		Config config = new Config();
+		config.username = prefs.getString(PreferenceKeys.USERNAME, null);
+		config.password = prefs.getString(PreferenceKeys.PASSWORD, null);
+		config.syncDir = new File(prefs.getString(PreferenceKeys.SYNC_DIR, null));
+
+		// Bail out if invalid
+		if (config.username == null || config.password == null || config.syncDir == null) {
+			return;
+		}
+
+		// Cancel any ongoing sync
+		if (syncOutcomeFuture != null) {
+			syncOutcomeFuture.cancel(true);
+		}
+
+		// Set up wake/wifi locks, then start sync
+		moveToForeground();
+		acquireWakelock();
+		acquireWifiLock();
+		syncOutcomeFuture = syncService.start(config);
+
+		notificationManager.startNotifying(syncService.getEventBus());
+
+		Futures.addCallback(syncOutcomeFuture, syncOutcomeCallback, MainThreadExecutorService.get());
+
+	}
+
+	private void stopSync() {
+		if ((syncOutcomeFuture != null) && !syncOutcomeFuture.isDone()) {
+			syncOutcomeFuture.cancel(true);
+		}
+	}
+
+	private void moveToForeground() {
+		Notification notification = notificationManager.newOngoingNotification(
+				getApplicationContext()).build();
+		startForeground(BaskingNotificationManager.NOTIFICATION_ID_ONGOING, notification);
+	}
+
+	private void moveToBackground() {
+		stopForeground(true);
+	}
+
+	private void acquireWakelock() {
+		if (wakeLock == null) {
+			PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+			this.wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+		}
+		if (!wakeLock.isHeld()) {
+			wakeLock.acquire(WAKELOCK_TIMEOUT);
+		}
+	}
+
+	private void releaseWakelock() {
+		if ((wakeLock != null) && wakeLock.isHeld()) {
+			wakeLock.release();
+		}
+	}
+
+	private void acquireWifiLock() {
+		if (wifiLock == null) {
+			WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+			this.wifiLock = wifiManager.createWifiLock(getPackageName());
+		}
+		if (!wifiLock.isHeld()) {
+			wifiLock.acquire();
+		}
+	}
+
+	private void releaseWifiLock() {
+		if ((wifiLock != null) && wifiLock.isHeld()) {
+			wifiLock.release();
+		}
+	}
+
+	private FutureCallback<Outcome> syncOutcomeCallback = new FutureCallback<Outcome>() {
+
+		@Override
+		public void onSuccess(Outcome arg0) {
+			Log.d(TAG, "Sync finished successfully");
+			moveToBackground();
+			releaseWakelock();
+			releaseWifiLock();
+			stopSelf();
+		}
+
+		@Override
+		public void onFailure(Throwable arg0) {
+			Log.d(TAG, "Sync finished with error", arg0);
+			moveToBackground();
+			releaseWakelock();
+			releaseWifiLock();
+			stopSelf();
+		}
+	};
+
+	public class SyncBinder extends android.os.Binder {
+
+		public void start() {
+			startSync();
+		}
+
+		public boolean isSyncOngoing() {
+			return syncOutcomeFuture != null && !syncOutcomeFuture.isDone();
+		}
+
+		@Nullable
+		public EventBus getSyncEventBus() {
+			return syncService.getEventBus();
+		}
+	}
+
+	static Intent newStartIntent(Context context) {
+		Intent intent = new Intent(context, BaskingSyncService.class);
+		intent.putExtra(EXTRA_COMMAND, COMMAND_START);
+		return intent;
+	}
+
+	static Intent newStopIntent(Context context) {
+		Intent intent = new Intent(context, BaskingSyncService.class);
+		intent.putExtra(EXTRA_COMMAND, COMMAND_STOP);
+		return intent;
+	}
+}

@@ -1,0 +1,31 @@
+apply plugin: 'android'
+
+apply from: 'signing.gradle'
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion '19.0.2'
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 19
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            runProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.release
+        }
+    }
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+    }
+}
+
+dependencies {
+    compile 'com.android.support:support-v13:19.0.+'
+    compile 'co.arcs.android:file-selector:1.0.0@aar'
+    compile 'co.arcs.groove:basking:1.5.3'
+}

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="@string/sync" >
+        <co.arcs.groove.basking.pref.LoginPreference
+            android:dialogTitle="@string/login"
+            android:title="@string/account" />
+
+        <co.arcs.groove.basking.pref.SyncDirPreference
+            android:key="pref_sync_dir"
+            android:title="@string/directory" />
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="pref_background_sync"
+            android:summaryOff="@string/pref_sync_interval_summary_off"
+            android:summaryOn="@string/pref_sync_interval_summary_on"
+            android:title="@string/pref_sync_interval_title" >
+        </CheckBoxPreference>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/about" >
+        <co.arcs.groove.basking.pref.VersionPreference android:title="@string/app_name" />
+    </PreferenceCategory>
+
+</PreferenceScreen>
