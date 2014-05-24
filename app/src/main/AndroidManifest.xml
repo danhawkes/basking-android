@@ -1,46 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="co.arcs.groove.basking"
-    android:versionCode="1"
-    android:versionName="1.0.0" >
+          package="co.arcs.groove.basking"
+          android:versionCode="1"
+          android:versionName="1.0.0">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <uses-sdk
         android:minSdkVersion="16"
-        android:targetSdkVersion="19" />
+        android:targetSdkVersion="19"/>
 
     <application
         android:name="co.arcs.groove.basking.App"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/ThemeBasking" >
+        android:theme="@style/ThemeBasking">
         <activity
             android:name="co.arcs.groove.basking.MainActivity"
             android:label="@string/app_name"
-            android:launchMode="singleTop" >
+            android:launchMode="singleTop">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
         <activity
             android:name="co.arcs.groove.basking.pref.PreferenceActivity"
             android:label="@string/settings"
-            android:parentActivityName="co.arcs.groove.basking.MainActivity" >
+            android:parentActivityName="co.arcs.groove.basking.MainActivity">
         </activity>
 
-        <service android:name="co.arcs.groove.basking.BaskingSyncService" >
+        <service android:name="co.arcs.groove.basking.BaskingSyncService">
         </service>
 
         <activity
             android:name="co.arcs.android.fileselector.FileSelectorActivity"
             android:label="@string/sync_directory"
-            android:theme="@style/ThemeFileSelector.Dialog" >
+            android:theme="@style/ThemeFileSelector.Dialog">
         </activity>
     </application>
 

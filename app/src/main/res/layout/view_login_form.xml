@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ViewSwitcher xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/container"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+              android:id="@+id/container"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -10,7 +10,7 @@
         android:paddingBottom="@dimen/p32"
         android:paddingLeft="@dimen/p16"
         android:paddingRight="@dimen/p16"
-        android:paddingTop="@dimen/p32" >
+        android:paddingTop="@dimen/p32">
 
         <EditText
             android:id="@+id/username"
@@ -22,9 +22,9 @@
             android:hint="@string/username"
             android:inputType="textEmailAddress"
             android:paddingBottom="@dimen/p4"
-            android:paddingTop="@dimen/p4" />
+            android:paddingTop="@dimen/p4"/>
 
-        <requestFocus />
+        <requestFocus/>
 
         <EditText
             android:id="@+id/password"
@@ -38,7 +38,7 @@
             android:inputType="textPassword"
             android:paddingBottom="@dimen/p4"
             android:paddingTop="@dimen/p4"
-            android:selectAllOnFocus="true" />
+            android:selectAllOnFocus="true"/>
     </RelativeLayout>
 
     <ProgressBar
@@ -46,6 +46,6 @@
         style="?android:attr/progressBarStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center" />
+        android:layout_gravity="center"/>
 
 </ViewSwitcher>
