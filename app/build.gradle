@@ -26,6 +26,6 @@ android {
 
 dependencies {
     compile 'com.android.support:support-v13:19.0.+'
-    compile 'co.arcs.android:file-selector:1.0.0@aar'
+    compile 'co.arcs.android:file-selector:1.0.1@aar'
     compile 'co.arcs.groove:basking:1.5.3'
 }
