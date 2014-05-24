@@ -54,7 +54,7 @@ public class MainFragment extends Fragment {
         super.onResume();
 
         boolean syncOngoing = (serviceBinder != null) && (serviceBinder.isSyncOngoing());
-        boolean hasLoginCredentials = App.getPreferenceUtils().hasLoginCredentials();
+        boolean hasLoginCredentials = App.getAppPreferences().hasLoginCredentials();
         syncButton.setEnabled(!syncOngoing && hasLoginCredentials);
     }
 
@@ -89,8 +89,7 @@ public class MainFragment extends Fragment {
             syncButton.setEnabled(false);
 
             Intent startIntent = new Intent(getActivity(), BaskingSyncService.class);
-            startIntent.putExtra(BaskingSyncService.EXTRA_COMMAND,
-                    BaskingSyncService.COMMAND_START);
+            startIntent.putExtra(BaskingSyncService.EXTRA_COMMAND, BaskingSyncService.COMMAND_START);
 
             getActivity().startService(startIntent);
         }

@@ -26,6 +26,7 @@ import java.util.concurrent.Executors;
 
 import co.arcs.android.util.MainThreadExecutorService;
 import co.arcs.groove.basking.R;
+import co.arcs.groove.basking.pref.AppPreferences.Keys;
 import co.arcs.groove.thresher.Client;
 import co.arcs.groove.thresher.GroovesharkException.InvalidCredentialsException;
 
@@ -53,7 +54,7 @@ public class LoginPreference extends DialogPreference {
     protected void onAttachedToHierarchy(PreferenceManager preferenceManager) {
         super.onAttachedToHierarchy(preferenceManager);
 
-        String username = getSharedPreferences().getString(PreferenceKeys.USERNAME, null);
+        String username = getSharedPreferences().getString(Keys.STR_USERNAME, null);
         if (username != null) {
             setSummary(username);
         }
@@ -72,8 +73,8 @@ public class LoginPreference extends DialogPreference {
     protected void onBindDialogView(View view) {
         super.onBindDialogView(view);
 
-        String username = getSharedPreferences().getString(PreferenceKeys.USERNAME, null);
-        String password = getSharedPreferences().getString(PreferenceKeys.PASSWORD, null);
+        String username = getSharedPreferences().getString(Keys.STR_USERNAME, null);
+        String password = getSharedPreferences().getString(Keys.STR_PASSWORD, null);
 
         usernameField = (EditText) view.findViewById(R.id.username);
         passwordField = (EditText) view.findViewById(R.id.password);
@@ -92,8 +93,8 @@ public class LoginPreference extends DialogPreference {
         super.onDialogClosed(positiveResult);
         if (positiveResult) {
             Editor edit = getSharedPreferences().edit();
-            edit.putString(PreferenceKeys.USERNAME, usernameField.getText().toString());
-            edit.putString(PreferenceKeys.PASSWORD, passwordField.getText().toString());
+            edit.putString(Keys.STR_USERNAME, usernameField.getText().toString());
+            edit.putString(Keys.STR_PASSWORD, passwordField.getText().toString());
             edit.apply();
             setSummary(usernameField.getText().toString());
         }

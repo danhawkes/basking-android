@@ -24,7 +24,7 @@ import java.io.File;
 import javax.annotation.Nullable;
 
 import co.arcs.android.util.MainThreadExecutorService;
-import co.arcs.groove.basking.pref.PreferenceKeys;
+import co.arcs.groove.basking.pref.AppPreferences.Keys;
 import co.arcs.groove.basking.task.SyncTask.Outcome;
 
 public class BaskingSyncService extends Service {
@@ -92,9 +92,9 @@ public class BaskingSyncService extends Service {
         // Load config
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         Config config = new Config();
-        config.username = prefs.getString(PreferenceKeys.USERNAME, null);
-        config.password = prefs.getString(PreferenceKeys.PASSWORD, null);
-        config.syncDir = new File(prefs.getString(PreferenceKeys.SYNC_DIR, null));
+        config.username = prefs.getString(Keys.STR_USERNAME, null);
+        config.password = prefs.getString(Keys.STR_PASSWORD, null);
+        config.syncDir = new File(prefs.getString(Keys.STR_SYNC_DIR, null));
 
         // Bail out if invalid
         if (config.username == null || config.password == null || config.syncDir == null) {
