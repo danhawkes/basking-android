@@ -29,9 +29,8 @@ import co.arcs.groove.basking.task.SyncTask.Outcome;
 
 public class BaskingSyncService extends Service {
 
-    public static final int COMMAND_START = 1;
-    public static final int COMMAND_STOP = 2;
-    public static final String EXTRA_COMMAND = "commmand";
+    public static final String ACTION_START = "start";
+    public static final String ACTION_STOP = "stop";
 
     private static final String TAG = BaskingSyncService.class.getSimpleName();
 
@@ -63,11 +62,15 @@ public class BaskingSyncService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "Started with flags: " + flags + ", startID: " + startId);
-        int command = intent.getIntExtra(EXTRA_COMMAND, -1);
-        if (command == COMMAND_START) {
-            Log.d(TAG, "Starting sync");
-            startSync();
-        } else if (command == COMMAND_STOP) {
+        String command = intent.getAction();
+        if (ACTION_START.equals(command)) {
+            if ((syncOutcomeFuture != null) && !syncOutcomeFuture.isDone()) {
+                Log.w(TAG, "Ignoring sync start command as already running");
+            } else {
+                Log.d(TAG, "Starting sync");
+                startSync();
+            }
+        } else if (ACTION_STOP.equals(command)) {
             Log.d(TAG, "Stopping sync");
             stopSync();
         }
@@ -89,6 +92,7 @@ public class BaskingSyncService extends Service {
     }
 
     private void startSync() {
+
         // Load config
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         Config config = new Config();
@@ -99,11 +103,6 @@ public class BaskingSyncService extends Service {
         // Bail out if invalid
         if (config.username == null || config.password == null || config.syncDir == null) {
             return;
-        }
-
-        // Cancel any ongoing sync
-        if (syncOutcomeFuture != null) {
-            syncOutcomeFuture.cancel(true);
         }
 
         // Set up wake/wifi locks, then start sync
@@ -206,13 +205,13 @@ public class BaskingSyncService extends Service {
 
     static Intent newStartIntent(Context context) {
         Intent intent = new Intent(context, BaskingSyncService.class);
-        intent.putExtra(EXTRA_COMMAND, COMMAND_START);
+        intent.setAction(ACTION_START);
         return intent;
     }
 
     static Intent newStopIntent(Context context) {
         Intent intent = new Intent(context, BaskingSyncService.class);
-        intent.putExtra(EXTRA_COMMAND, COMMAND_STOP);
+        intent.setAction(ACTION_STOP);
         return intent;
     }
 }

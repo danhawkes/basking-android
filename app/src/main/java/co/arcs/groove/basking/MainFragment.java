@@ -85,13 +85,8 @@ public class MainFragment extends Fragment {
 
         @Override
         public void onClick(View v) {
-
             syncButton.setEnabled(false);
-
-            Intent startIntent = new Intent(getActivity(), BaskingSyncService.class);
-            startIntent.putExtra(BaskingSyncService.EXTRA_COMMAND, BaskingSyncService.COMMAND_START);
-
-            getActivity().startService(startIntent);
+            getActivity().startService(BaskingSyncService.newStartIntent(getActivity()));
         }
     };
 

@@ -9,13 +9,9 @@ public class BackgroundSyncScheduler {
 
     public static void reschedule(Context context, boolean enabled) {
 
-        Intent serviceIntent = new Intent(context, BaskingSyncService.class);
-        serviceIntent.putExtra(BaskingSyncService.EXTRA_COMMAND, BaskingSyncService.COMMAND_START);
+        Intent serviceIntent = BaskingSyncService.newStartIntent(context);
 
-        PendingIntent pendingIntent = PendingIntent.getService(context,
-                0,
-                serviceIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getService(context, 0, serviceIntent, 0);
 
         AlarmManager alarmMan = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
