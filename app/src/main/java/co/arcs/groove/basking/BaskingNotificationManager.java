@@ -78,8 +78,6 @@ public class BaskingNotificationManager {
      *
      * @param syncEventBus
      *         Bus on which sync progress events will be delivered.
-     * @param syncFuture
-     *         Future containing the sync outcome.
      */
     public void startNotifying(EventBus syncEventBus) {
 
@@ -211,8 +209,8 @@ public class BaskingNotificationManager {
         log(e);
         ongoing.progressPercent = 0;
         ongoing.subtitle = context.getString(R.string.status_downloading_song,
-                e.task.song.artistName,
-                e.task.song.name);
+                e.task.song.getArtistName(),
+                e.task.song.getName());
         updateOngoing();
     }
 
@@ -224,8 +222,8 @@ public class BaskingNotificationManager {
         log(e);
         ongoing.progressPercent = (int) e.percentage;
         ongoing.subtitle = context.getString(R.string.status_downloading_song,
-                e.task.song.artistName,
-                e.task.song.name);
+                e.task.song.getArtistName(),
+                e.task.song.getName());
         updateOngoing();
     }
 
