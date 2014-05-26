@@ -62,17 +62,25 @@ public class BaskingSyncService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "Started with flags: " + flags + ", startID: " + startId);
-        String command = intent.getAction();
-        if (ACTION_START.equals(command)) {
-            if ((syncOutcomeFuture != null) && !syncOutcomeFuture.isDone()) {
-                Log.w(TAG, "Ignoring sync start command as already running");
-            } else {
-                Log.d(TAG, "Starting sync");
-                startSync();
+
+        boolean syncRunning = false;
+        if (intent != null) {
+            String command = intent.getAction();
+            if (ACTION_START.equals(command)) {
+                if ((syncOutcomeFuture != null) && !syncOutcomeFuture.isDone()) {
+                    Log.w(TAG, "Ignoring sync start command as already running");
+                    syncRunning = true;
+                } else {
+                    Log.d(TAG, "Starting sync");
+                    syncRunning = startSync();
+                }
+            } else if (ACTION_STOP.equals(command)) {
+                Log.d(TAG, "Stopping sync");
+                stopSync();
             }
-        } else if (ACTION_STOP.equals(command)) {
-            Log.d(TAG, "Stopping sync");
-            stopSync();
+        }
+        if (!syncRunning) {
+            stopSelf();
         }
         return Service.START_NOT_STICKY;
     }
@@ -91,7 +99,13 @@ public class BaskingSyncService extends Service {
         super.onDestroy();
     }
 
-    private void startSync() {
+    /**
+     * Starts the sync process.
+     *
+     * @return True, if the sync was started, or was already running. False is returned if it was
+     * not possible to start the sync.
+     */
+    private boolean startSync() {
 
         // Load config
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -102,7 +116,7 @@ public class BaskingSyncService extends Service {
 
         // Bail out if invalid
         if (config.username == null || config.password == null || config.syncDir == null) {
-            return;
+            return false;
         }
 
         // Set up wake/wifi locks, then start sync
@@ -116,6 +130,8 @@ public class BaskingSyncService extends Service {
         Futures.addCallback(syncOutcomeFuture,
                 syncOutcomeCallback,
                 MainThreadExecutorService.get());
+
+        return true;
     }
 
     private void stopSync() {
