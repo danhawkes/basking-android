@@ -5,6 +5,8 @@ import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.LayoutInflater;
@@ -50,12 +52,21 @@ public class MainFragment extends Fragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
+    public void onStart() {
+        super.onStart();
+        App.getAppPreferences()
+                .getPrefs()
+                .registerOnSharedPreferenceChangeListener(preferenceChangeListener);
 
-        boolean syncOngoing = (serviceBinder != null) && (serviceBinder.isSyncOngoing());
-        boolean hasLoginCredentials = App.getAppPreferences().hasLoginCredentials();
-        syncButton.setEnabled(!syncOngoing && hasLoginCredentials);
+        syncButton.setEnabled(canSync());
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        App.getAppPreferences()
+                .getPrefs()
+                .unregisterOnSharedPreferenceChangeListener(preferenceChangeListener);
     }
 
     @Override
@@ -66,6 +77,13 @@ public class MainFragment extends Fragment {
         }
         getActivity().unbindService(serviceConnection);
     }
+
+    private final OnSharedPreferenceChangeListener preferenceChangeListener = new OnSharedPreferenceChangeListener() {
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            syncButton.setEnabled(canSync());
+        }
+    };
 
     private final ServiceConnection serviceConnection = new ServiceConnection() {
 
@@ -98,5 +116,11 @@ public class MainFragment extends Fragment {
     @Subscribe
     public void onEvent(SyncEvent.FinishedWithError e) {
         syncButton.setEnabled(true);
+    }
+
+    private boolean canSync() {
+        boolean syncOngoing = (serviceBinder != null) && (serviceBinder.isSyncOngoing());
+        boolean haveCredentials = App.getAppPreferences().hasLoginCredentials();
+        return !syncOngoing && haveCredentials;
     }
 }
