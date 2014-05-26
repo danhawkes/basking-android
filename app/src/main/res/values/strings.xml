@@ -21,7 +21,7 @@
     <string name="pref_error_noconnection_title">Could not contact server</string>
     <string name="pref_error_noconnection_message">Could not contact the server to confirm your credentials. Continue anyway?</string>
     <string name="pref_error_badpassword_title">Invalid credentials</string>
-    <string name="pref_error_badpassword_message">The username or password you entered was not recognised. Please try again.</string>
+    <string name="pref_error_badpassword_message">The username or password you entered is incorrect. Please try again.</string>
     <string name="pref_sync_interval_title">Background sync</string>
     <string name="pref_sync_interval_summary_on">Daily</string>
     <string name="pref_sync_interval_summary_off">Never</string>
@@ -32,8 +32,10 @@
     <string name="status_deleting_items">Deleting removed items…</string>
     <string name="status_downloading_song">"Downloading '%1$s - %2$s'…"</string>
     <string name="status_generating_playlists">Generating playlists…</string>
-    <string name="status_error_no_network">No network connection.</string>
+    <string name="status_error_noconnection">No network connection.</string>
     <string name="status_error_cancelled">Sync cancelled.</string>
+    <string name="status_error_invalidcredentials">Username/password is invalid.</string>
+    <string name="status_error_serverissue">Server is not responding.</string>
     <string name="status_error_unknown">An unknown error occurred.</string>
 
     <!-- Sync ongoing notification -->
@@ -61,7 +63,9 @@
     <!-- Sync failure notification -->
     <string name="notif_finished_failure_title">Sync error</string>
     <string name="notif_finished_failure_ticker">@string/notif_finished_failure_title</string>
-    <string name="notif_finished_failure_subtitle_no_network">@string/status_error_no_network</string>
+    <string name="notif_finished_failure_subtitle_noconnection">@string/status_error_noconnection</string>
+    <string name="notif_finished_failure_subtitle_invalidcredentials">@string/status_error_invalidcredentials</string>
+    <string name="notif_finished_failure_subtitle_serverissue">@string/status_error_serverissue</string>
     <string name="notif_finished_failure_subtitle_cancelled">@string/status_error_cancelled</string>
     <string name="notif_finished_failure_subtitle_unknown">@string/status_error_unknown</string>
 

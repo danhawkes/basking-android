@@ -24,6 +24,9 @@ import co.arcs.groove.basking.event.impl.GeneratePlaylistsEvent;
 import co.arcs.groove.basking.event.impl.GetSongsToSyncEvent;
 import co.arcs.groove.basking.event.impl.SyncEvent;
 import co.arcs.groove.basking.task.SyncTask.Outcome;
+import co.arcs.groove.thresher.GroovesharkException.InvalidCredentialsException;
+import co.arcs.groove.thresher.GroovesharkException.RateLimitedException;
+import co.arcs.groove.thresher.GroovesharkException.ServerErrorException;
 import co.arcs.groove.thresher.Song;
 
 public class BaskingNotificationManager {
@@ -309,7 +312,11 @@ public class BaskingNotificationManager {
             finished.dismissOnClick = true;
             finished.ticker = context.getString(R.string.notif_finished_failure_ticker);
             if (throwable instanceof IOException) {
-                finished.subtitle = context.getString(R.string.notif_finished_failure_subtitle_no_network);
+                finished.subtitle = context.getString(R.string.notif_finished_failure_subtitle_noconnection);
+            } else if (throwable instanceof InvalidCredentialsException) {
+                finished.subtitle = context.getString(R.string.notif_finished_failure_subtitle_invalidcredentials);
+            } else if (throwable instanceof RateLimitedException || throwable instanceof ServerErrorException) {
+                finished.subtitle = context.getString(R.string.notif_finished_failure_subtitle_serverissue);
             } else {
                 finished.subtitle = context.getString(R.string.notif_finished_failure_subtitle_unknown);
             }
