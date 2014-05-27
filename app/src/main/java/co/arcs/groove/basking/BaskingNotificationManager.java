@@ -9,13 +9,13 @@ import android.content.res.Resources;
 import android.util.Log;
 
 import com.beust.jcommander.internal.Maps;
-import com.google.common.base.Throwables;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 
 import co.arcs.groove.basking.event.impl.BuildSyncPlanEvent;
 import co.arcs.groove.basking.event.impl.DeleteFileEvent;
@@ -295,27 +295,27 @@ public class BaskingNotificationManager {
     }
 
     @Subscribe
-    public void onEvent(SyncEvent.FinishedWithError e) {
+    public void onEvent(SyncEvent.FinishedWithError event) {
         if (!observeEvents) {
             return;
         }
-        log(e);
+        log(event);
 
-        Throwable throwable = Throwables.getRootCause(e.e);
+        Throwable t = getFirstNonExecutionException(event.e);
 
         stopObservingEvents();
 
-        if ((throwable instanceof InterruptedException) || (throwable instanceof CancellationException)) {
+        if ((t instanceof InterruptedException) || (t instanceof CancellationException)) {
             // Finish silently
         } else {
             finished.viewPendingIntent = viewPendingIntent;
             finished.dismissOnClick = true;
             finished.ticker = context.getString(R.string.notif_finished_failure_ticker);
-            if (throwable instanceof IOException) {
+            if (t instanceof IOException) {
                 finished.subtitle = context.getString(R.string.notif_finished_failure_subtitle_noconnection);
-            } else if (throwable instanceof InvalidCredentialsException) {
+            } else if (t instanceof InvalidCredentialsException) {
                 finished.subtitle = context.getString(R.string.notif_finished_failure_subtitle_invalidcredentials);
-            } else if (throwable instanceof RateLimitedException || throwable instanceof ServerErrorException) {
+            } else if (t instanceof RateLimitedException || t instanceof ServerErrorException) {
                 finished.subtitle = context.getString(R.string.notif_finished_failure_subtitle_serverissue);
             } else {
                 finished.subtitle = context.getString(R.string.notif_finished_failure_subtitle_unknown);
@@ -350,6 +350,22 @@ public class BaskingNotificationManager {
 
     private void log(Object e) {
         Log.d("BaskingNotificationManager", e.toString());
+    }
+
+    /**
+     * Returns the first non-ExecutionException in the given throwable's causal chain. In the
+     * case that there is no non-ExecutionException to return (i.e. the root exception is an
+     * execution exception), the root exception will be returned.
+     */
+    private static Throwable getFirstNonExecutionException(Throwable t) {
+        Throwable cause = t.getCause();
+        if (t == cause) {
+            return t;
+        } else if (t instanceof ExecutionException) {
+            return getFirstNonExecutionException(cause);
+        } else {
+            return t;
+        }
     }
 
     private static class NotificationValueHolder {
