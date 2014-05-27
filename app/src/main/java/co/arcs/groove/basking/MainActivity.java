@@ -6,7 +6,10 @@ import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v13.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
+import android.view.ViewGroup;
+
+import com.jfeinstein.jazzyviewpager.JazzyViewPager;
+import com.jfeinstein.jazzyviewpager.JazzyViewPager.TransitionEffect;
 
 import java.io.File;
 
@@ -17,7 +20,7 @@ import co.arcs.groove.basking.pref.SyncDirPreference;
 public class MainActivity extends Activity implements SyncDirPreference.Listener {
 
     private SectionPagerAdapter sectionPagerAdapter;
-    private ViewPager viewPager;
+    private JazzyViewPager viewPager;
 
     private static final int REQUEST_SYNC_DIR = 1;
     private SyncDirPreference syncDirPreference;
@@ -27,9 +30,10 @@ public class MainActivity extends Activity implements SyncDirPreference.Listener
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        sectionPagerAdapter = new SectionPagerAdapter(getFragmentManager());
+        viewPager = (JazzyViewPager) findViewById(R.id.viewPager);
+        viewPager.setTransitionEffect(TransitionEffect.RotateDown);
 
-        viewPager = (ViewPager) findViewById(R.id.pager);
+        sectionPagerAdapter = new SectionPagerAdapter(getFragmentManager(), viewPager);
         viewPager.setAdapter(sectionPagerAdapter);
     }
 
@@ -63,13 +67,23 @@ public class MainActivity extends Activity implements SyncDirPreference.Listener
 
     private static class SectionPagerAdapter extends FragmentPagerAdapter {
 
-        public SectionPagerAdapter(FragmentManager fm) {
+        private final JazzyViewPager viewPager;
+
+        public SectionPagerAdapter(FragmentManager fm, JazzyViewPager viewPager) {
             super(fm);
+            this.viewPager = viewPager;
         }
 
         @Override
         public int getCount() {
             return 2;
+        }
+
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            Object obj = super.instantiateItem(container, position);
+            viewPager.setObjectForPosition(obj, position);
+            return obj;
         }
 
         @Override
