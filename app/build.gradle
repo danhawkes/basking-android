@@ -1,4 +1,5 @@
 apply plugin: 'android'
+apply plugin: 'release'
 
 apply from: 'signing.gradle'
 
