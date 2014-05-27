@@ -8,10 +8,6 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
-    <uses-sdk
-        android:minSdkVersion="16"
-        android:targetSdkVersion="19"/>
-
     <application
         android:name="co.arcs.groove.basking.App"
         android:allowBackup="true"
@@ -37,7 +33,7 @@
             android:label="@string/sync_directory"
             android:theme="@style/ThemeFileSelector.Dialog">
         </activity>
-        
+
     </application>
 
 </manifest>
