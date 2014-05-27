@@ -3,9 +3,20 @@ package co.arcs.groove.basking;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 
+import org.acra.ACRA;
+import org.acra.annotation.ReportsCrashes;
+
 import co.arcs.groove.basking.pref.AppPreferences;
 import co.arcs.groove.basking.pref.AppPreferences.Keys;
 
+@ReportsCrashes(
+        formKey = "",
+        formUri = "https://arcs.cloudant.com/acra-basking/_design/acra-storage/_update/report",
+        excludeMatchingSharedPreferencesKeys = {Keys.STR_USERNAME, Keys.STR_PASSWORD},
+        reportType = org.acra.sender.HttpSender.Type.JSON,
+        httpMethod = org.acra.sender.HttpSender.Method.PUT,
+        formUriBasicAuthLogin = "bosequiestanieropningeri",
+        formUriBasicAuthPassword = "p2XDLB6jNdGrAfQSwhWb2MGl")
 public class App extends android.app.Application {
 
     static AppPreferences appPreferences;
@@ -13,6 +24,9 @@ public class App extends android.app.Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        ACRA.init(this);
+
         App.appPreferences = new AppPreferences(this);
         appPreferences.initialiseDefaults();
 
