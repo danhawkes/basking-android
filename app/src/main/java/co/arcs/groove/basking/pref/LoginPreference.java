@@ -22,6 +22,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.Executors;
 
 import co.arcs.android.util.MainThreadExecutorService;
@@ -36,6 +37,8 @@ public class LoginPreference extends DialogPreference {
     private EditText passwordField;
     private ViewSwitcher container;
     private Button okButton;
+    private ListeningExecutorService executor;
+    private ListenableFuture<Void> loginFuture;
 
     public LoginPreference(Context context, AttributeSet attrs) {
         this(context, attrs, android.R.attr.preferenceStyle);
@@ -64,6 +67,7 @@ public class LoginPreference extends DialogPreference {
     protected void showDialog(Bundle state) {
         super.showDialog(state);
         okButton = ((AlertDialog) getDialog()).getButton(DialogInterface.BUTTON_POSITIVE);
+        executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
 
         // Replace the button's on click listener with our own
         okButton.setOnClickListener(okButtonOnClickListener);
@@ -98,6 +102,15 @@ public class LoginPreference extends DialogPreference {
             edit.apply();
             setSummary(usernameField.getText().toString());
         }
+        executor.shutdown();
+        if (loginFuture != null) {
+            loginFuture.cancel(true);
+        }
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        super.onDismiss(dialog);
     }
 
     private final View.OnClickListener okButtonOnClickListener = new View.OnClickListener() {
@@ -118,20 +131,22 @@ public class LoginPreference extends DialogPreference {
             container.setDisplayedChild(1);
             okButton.setEnabled(false);
 
-            ListenableFuture<Void> loginFuture = validateCredentials(usernameField.getText()
-                    .toString(), passwordField.getText().toString());
+            loginFuture = validateCredentials(usernameField.getText().toString(),
+                    passwordField.getText().toString());
 
             Futures.addCallback(loginFuture, new FutureCallback<Void>() {
 
                 @Override
                 public void onFailure(Throwable arg0) {
-                    if (arg0 instanceof InvalidCredentialsException) {
-                        showBadPasswordDialog();
-                    } else if (arg0 instanceof IOException) {
-                        showContinueAnywayDialog();
+                    if (!(arg0 instanceof CancellationException) && !(arg0 instanceof InterruptedException)) {
+                        if (arg0 instanceof InvalidCredentialsException) {
+                            showBadPasswordDialog();
+                        } else if (arg0 instanceof IOException) {
+                            showContinueAnywayDialog();
+                        }
+                        container.setDisplayedChild(0);
+                        okButton.setEnabled(true);
                     }
-                    container.setDisplayedChild(0);
-                    okButton.setEnabled(true);
                 }
 
                 @Override
@@ -168,8 +183,6 @@ public class LoginPreference extends DialogPreference {
      * {@link Client#login(String, String)}.
      */
     private ListenableFuture<Void> validateCredentials(String username, String password) {
-        ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
-
         return executor.submit(new Callable<Void>() {
 
             @Override
