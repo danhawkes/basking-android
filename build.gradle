@@ -3,10 +3,10 @@
 buildscript {
     repositories {
         mavenCentral()
-        maven { url "https://oss.sonatype.org/content/groups/public"}
+        maven { url "https://oss.sonatype.org/content/groups/public" }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.9.+'
+        classpath 'com.android.tools.build:gradle:0.10.+'
         classpath 'com.github.townsfolk:gradle-release:1.2'
     }
 }
@@ -14,11 +14,7 @@ buildscript {
 allprojects {
     repositories {
         mavenCentral()
-        maven {
-            url "https://arcs.co/archiva/repository/external/"
-        }
-        maven {
-            url "https://arcs.co/archiva/repository/snapshots/"
-        }
+        maven { url "https://arcs.co/archiva/repository/external/" }
+        maven { url "https://arcs.co/archiva/repository/snapshots/" }
     }
 }
