@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <declare-styleable name="hcpb_HoloCircularProgressBar">
+        <attr name="hcpb_stroke_width" format="dimension" />
+        <attr name="hcpb_progress" format="float" />
+        <attr name="hcpb_marker_progress" format="float" />
+        <attr name="hcpb_progress_color" format="color" />
+        <attr name="hcpb_progress_background_color" format="color" />
+        <attr name="hcpb_thumb_visible" format="boolean" />
+        <attr name="hcpb_marker_visible" format="boolean" />
+        <attr name="android:gravity" tools:ignore="ResourceName"/>
+    </declare-styleable>
+
+    <attr name="hcpb_style" format="reference" />
+
+</resources>
