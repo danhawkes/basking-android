@@ -30,4 +30,5 @@ dependencies {
     compile 'co.arcs.android:file-selector:1.0.1@aar'
     compile 'co.arcs.groove:basking:1.6.0'
     compile 'ch.acra:acra:4.5.0'
+    compile project(':lib-holocircularprogressbar:library')
 }
