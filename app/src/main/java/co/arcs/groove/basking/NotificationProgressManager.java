@@ -6,33 +6,55 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 
-import com.beust.jcommander.internal.Maps;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
-import co.arcs.groove.basking.event.impl.BuildSyncPlanEvent;
-import co.arcs.groove.basking.event.impl.DeleteFileEvent;
-import co.arcs.groove.basking.event.impl.DownloadSongEvent;
-import co.arcs.groove.basking.event.impl.GeneratePlaylistsEvent;
-import co.arcs.groove.basking.event.impl.GetSongsToSyncEvent;
-import co.arcs.groove.basking.event.impl.SyncEvent;
+import co.arcs.groove.basking.event.Events.BuildSyncPlanProgressChangedEvent;
+import co.arcs.groove.basking.event.Events.BuildSyncPlanStartedEvent;
+import co.arcs.groove.basking.event.Events.DeleteFilesStartedEvent;
+import co.arcs.groove.basking.event.Events.DownloadSongProgressChangedEvent;
+import co.arcs.groove.basking.event.Events.DownloadSongStartedEvent;
+import co.arcs.groove.basking.event.Events.GeneratePlaylistsProgressChangedEvent;
+import co.arcs.groove.basking.event.Events.GeneratePlaylistsStartedEvent;
+import co.arcs.groove.basking.event.Events.GetSongsToSyncProgressChangedEvent;
+import co.arcs.groove.basking.event.Events.GetSongsToSyncStartedEvent;
+import co.arcs.groove.basking.event.Events.SyncProcessFinishedEvent;
+import co.arcs.groove.basking.event.Events.SyncProcessFinishedWithErrorEvent;
 import co.arcs.groove.basking.task.SyncTask.Outcome;
 import co.arcs.groove.thresher.GroovesharkException.InvalidCredentialsException;
 import co.arcs.groove.thresher.GroovesharkException.RateLimitedException;
 import co.arcs.groove.thresher.GroovesharkException.ServerErrorException;
-import co.arcs.groove.thresher.Song;
 
-public class BaskingNotificationManager {
+/**
+ * Watches events on the sync event bus and updates 'in-progress' and 'finished' notifications.
+ *
+ * <p>Some implementation notes:</p>
+ *
+ * <p>The 'in-progress' notification is supplied to the sync service for use as its foreground
+ * notification. The sync service dismisses the notification at the end of the sync process when it
+ * returns to the background state.</p>
+ *
+ * <p>It turns out building notifications is very slow (Notification.Builder#build() takes ~60ms),
+ * and showing them is even slower (due to a load of IPC). Trying to update the notification at full
+ * speed maxes out the CPU, so instead updates from the event bus are batched into updates that get
+ * published at a set interval.
+ */
+public class NotificationProgressManager {
 
-    static final int NOTIFICATION_ID_ONGOING = 1;
-    static final int NOTIFICATION_ID_FINISHED = 2;
+    static final int NOTIFICATION_ID_ONGOING = 23874;
+    static final int NOTIFICATION_ID_FINISHED = 87632;
+    private static final int MSG_UPDATE_ONGOING = 1;
+    private static final int MSG_UPDATE_FINISHED = 2;
+    private static final int NOTIFICATION_UPDATE_INTERVAL = 100;
 
     private final NotificationValueHolder ongoing = new NotificationValueHolder(
             NOTIFICATION_ID_ONGOING);
@@ -46,19 +68,19 @@ public class BaskingNotificationManager {
     private final PendingIntent cancelPendingIntent;
 
     private EventBus syncServiceEventBus;
-    private boolean observeEvents;
+    private boolean handleOngoingEvents;
 
-    public BaskingNotificationManager(Context context) {
+    public NotificationProgressManager(Context context) {
         this.context = context;
         this.notMan = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         this.viewPendingIntent = PendingIntent.getActivity(context,
                 0,
                 new Intent(context, MainActivity.class),
-                Intent.FLAG_ACTIVITY_NEW_TASK);
+                PendingIntent.FLAG_UPDATE_CURRENT);
         this.cancelPendingIntent = PendingIntent.getService(context,
                 0,
                 BaskingSyncService.newStopIntent(context),
-                0);
+                PendingIntent.FLAG_UPDATE_CURRENT);
 
         ongoing.iconId = android.R.drawable.stat_notify_sync;
         ongoing.viewPendingIntent = viewPendingIntent;
@@ -74,10 +96,9 @@ public class BaskingNotificationManager {
 
     /**
      * Configure the notification manager to observe a new sync operation.
-     * <p>
-     * Note: Any previously supplied sync future must have finished before
-     * calling this method with a new future.
-     * </p>
+     *
+     * <p>Note: Any previously supplied sync future must have finished before calling this method
+     * with a new future.</p>
      *
      * @param syncEventBus
      *         Bus on which sync progress events will be delivered.
@@ -93,14 +114,14 @@ public class BaskingNotificationManager {
     }
 
     /**
-     * Generate a new 'ongoing' notification for use by the
-     * {@link BaskingSyncService} when going into the foreground state.
+     * Generate a new 'ongoing' notification for use by the {@link BaskingSyncService} when going
+     * into the foreground state.
      */
-    public Notification.Builder newOngoingNotification(Context context) {
+    public Notification newOngoingNotification(Context context) {
         return newNotification(context, ongoing);
     }
 
-    private Notification.Builder newNotification(Context context, NotificationValueHolder holder) {
+    private Notification newNotification(Context context, NotificationValueHolder holder) {
 
         Notification.Builder builder = new Notification.Builder(context);
         builder.setSmallIcon(holder.iconId);
@@ -124,165 +145,153 @@ public class BaskingNotificationManager {
             builder.setProgress(100, holder.progressPercent, false);
         }
         builder.setOngoing(holder.ongoing);
-        return builder;
+        return builder.build();
     }
 
-    void updateOngoing() {
-        notMan.notify(ongoing.id, newNotification(context, ongoing).build());
+    void invalidateOngoingNotification() {
+        // Only send another message if not already 'invalidated'
+        if (!handler.hasMessages(MSG_UPDATE_ONGOING)) {
+            handler.sendEmptyMessageDelayed(MSG_UPDATE_ONGOING, NOTIFICATION_UPDATE_INTERVAL);
+        }
     }
 
-    void updateFinished() {
-        notMan.notify(finished.id, newNotification(context, finished).build());
+    void invalidateFinishedNotification() {
+        if (!handler.hasMessages(MSG_UPDATE_FINISHED)) {
+            handler.sendEmptyMessageDelayed(MSG_UPDATE_FINISHED, NOTIFICATION_UPDATE_INTERVAL);
+        }
     }
+
+    private final Handler handler = new Handler(Looper.getMainLooper()) {
+
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if (msg.what == MSG_UPDATE_ONGOING) {
+                if (handleOngoingEvents) {
+                    notMan.notify(ongoing.id, newNotification(context, ongoing));
+                }
+            } else if (msg.what == MSG_UPDATE_FINISHED) {
+                notMan.notify(finished.id, newNotification(context, finished));
+            }
+        }
+    };
 
     // Query API for use information
 
     @Subscribe
-    public void onEvent(GetSongsToSyncEvent.Started e) {
-        if (!observeEvents) {
-            return;
+    public void onEvent(GetSongsToSyncStartedEvent e) {
+        if (handleOngoingEvents) {
+            ongoing.subtitle = context.getString(R.string.status_retrieving_profile);
+            invalidateOngoingNotification();
         }
-        log(e);
-        ongoing.subtitle = context.getString(R.string.status_retrieving_profile);
-        updateOngoing();
     }
 
     @Subscribe
-    public void onEvent(GetSongsToSyncEvent.ProgressChanged e) {
-        if (!observeEvents) {
-            return;
+    public void onEvent(GetSongsToSyncProgressChangedEvent e) {
+        if (handleOngoingEvents) {
+            ongoing.progressPercent = (int) e.getPercentage();
+            invalidateOngoingNotification();
         }
-        log(e);
-        ongoing.progressPercent = (int) e.percentage;
-        updateOngoing();
     }
 
     // Build sync plan
 
     @Subscribe
-    public void onEvent(BuildSyncPlanEvent.Started e) {
-        if (!observeEvents) {
-            return;
+    public void onEvent(BuildSyncPlanStartedEvent e) {
+        if (handleOngoingEvents) {
+            ongoing.progressPercent = 0;
+            ongoing.subtitle = context.getString(R.string.status_building_sync_plan);
+            invalidateOngoingNotification();
         }
-        log(e);
-        ongoing.progressPercent = 0;
-        ongoing.subtitle = context.getString(R.string.status_building_sync_plan);
-        updateOngoing();
     }
 
     @Subscribe
-    public void onEvent(BuildSyncPlanEvent.ProgressChanged e) {
-        if (!observeEvents) {
-            return;
+    public void onEvent(BuildSyncPlanProgressChangedEvent e) {
+        if (handleOngoingEvents) {
+            ongoing.progressPercent = (int) e.getPercentage();
+            invalidateOngoingNotification();
         }
-        log(e);
-        ongoing.progressPercent = (int) e.percentage;
-        updateOngoing();
     }
 
     // Delete files
 
-    boolean startedDeletion;
-
     @Subscribe
-    public void onEvent(DeleteFileEvent.Started e) {
-        if (!observeEvents) {
-            return;
-        }
-        log(e);
-        if (!startedDeletion) {
-            startedDeletion = true;
+    public void onEvent(DeleteFilesStartedEvent e) {
+        if (handleOngoingEvents) {
             ongoing.progressPercent = 0;
             ongoing.subtitle = context.getString(R.string.status_deleting_items);
-            updateOngoing();
+            invalidateOngoingNotification();
         }
     }
 
     // Download song
 
-    boolean startedDownload;
-
-    Map<Song, Float> downloadingSongs = Maps.newLinkedHashMap();
-
     @Subscribe
-    public void onEvent(DownloadSongEvent.Started e) {
-        if (!observeEvents) {
-            return;
+    public void onEvent(DownloadSongStartedEvent e) {
+        if (handleOngoingEvents) {
+            ongoing.progressPercent = 0;
+            ongoing.subtitle = context.getString(R.string.status_downloading_song,
+                    e.getSong().getArtistName(),
+                    e.getSong().getName());
+            invalidateOngoingNotification();
         }
-        log(e);
-        ongoing.progressPercent = 0;
-        ongoing.subtitle = context.getString(R.string.status_downloading_song,
-                e.task.song.getArtistName(),
-                e.task.song.getName());
-        updateOngoing();
     }
 
     @Subscribe
-    public void onEvent(DownloadSongEvent.ProgressChanged e) {
-        if (!observeEvents) {
-            return;
+    public void onEvent(DownloadSongProgressChangedEvent e) {
+        if (handleOngoingEvents) {
+            ongoing.progressPercent = (int) e.getPercentage();
+            ongoing.subtitle = context.getString(R.string.status_downloading_song,
+                    e.getSong().getArtistName(),
+                    e.getSong().getName());
+            invalidateOngoingNotification();
         }
-        log(e);
-        ongoing.progressPercent = (int) e.percentage;
-        ongoing.subtitle = context.getString(R.string.status_downloading_song,
-                e.task.song.getArtistName(),
-                e.task.song.getName());
-        updateOngoing();
     }
 
     // Generate playlist
 
     @Subscribe
-    public void onEvent(GeneratePlaylistsEvent.Started e) {
-        if (!observeEvents) {
-            return;
+    public void onEvent(GeneratePlaylistsStartedEvent e) {
+        if (handleOngoingEvents) {
+            ongoing.subtitle = context.getString(R.string.status_generating_playlists);
+            ongoing.progressPercent = 0;
+            invalidateOngoingNotification();
         }
-        log(e);
-        ongoing.subtitle = context.getString(R.string.status_generating_playlists);
-        ongoing.progressPercent = 0;
-        updateOngoing();
     }
 
     @Subscribe
-    public void onEvent(GeneratePlaylistsEvent.ProgressChanged e) {
-        if (!observeEvents) {
-            return;
+    public void onEvent(GeneratePlaylistsProgressChangedEvent e) {
+        if (handleOngoingEvents) {
+            ongoing.progressPercent = (int) e.getPercentage();
+            invalidateOngoingNotification();
         }
-        log(e);
-        ongoing.progressPercent = (int) e.percentage;
-        updateOngoing();
     }
 
     // Outcome
 
     @Subscribe
-    public void onEvent(SyncEvent.Finished e) {
-        if (!observeEvents) {
-            return;
-        }
-        log(e);
+    public void onEvent(SyncProcessFinishedEvent e) {
 
-        Outcome outcome = e.outcome;
+        stopHandlingOngoingEvents();
 
-        stopObservingEvents();
-
+        Outcome outcome = e.getOutcome();
         Resources res = context.getResources();
         finished.viewPendingIntent = viewPendingIntent;
         finished.dismissOnClick = true;
         finished.ticker = context.getString(R.string.notif_finished_success_ticker);
-        if (outcome.downloaded > 0 && outcome.deleted > 0) {
+        if (outcome.getDownloaded() > 0 && outcome.getDeleted() > 0) {
             finished.subtitle = res.getQuantityString(R.plurals.notif_finished_success_subtitle_added_and_removed,
-                    outcome.downloaded,
-                    outcome.downloaded,
-                    outcome.deleted);
-        } else if (outcome.downloaded > 0) {
+                    outcome.getDownloaded(),
+                    outcome.getDownloaded(),
+                    outcome.getDeleted());
+        } else if (outcome.getDownloaded() > 0) {
             finished.subtitle = res.getQuantityString(R.plurals.notif_finished_success_subtitle_added,
-                    outcome.downloaded,
-                    outcome.downloaded);
-        } else if (outcome.deleted > 0) {
+                    outcome.getDownloaded(),
+                    outcome.getDownloaded());
+        } else if (outcome.getDeleted() > 0) {
             finished.subtitle = res.getQuantityString(R.plurals.notif_finished_success_subtitle_removed,
-                    outcome.deleted,
-                    outcome.deleted);
+                    outcome.getDeleted(),
+                    outcome.getDeleted());
         } else {
             finished.subtitle = context.getString(R.string.notif_finished_success_subtitle_unchanged);
         }
@@ -291,20 +300,15 @@ public class BaskingNotificationManager {
         finished.hasCancelButton = false;
         finished.ongoing = false;
         finished.iconId = android.R.drawable.stat_notify_sync_noanim;
-        updateFinished();
+        invalidateFinishedNotification();
     }
 
     @Subscribe
-    public void onEvent(SyncEvent.FinishedWithError event) {
-        if (!observeEvents) {
-            return;
-        }
-        log(event);
+    public void onEvent(SyncProcessFinishedWithErrorEvent event) {
 
-        Throwable t = getFirstNonExecutionException(event.e);
+        stopHandlingOngoingEvents();
 
-        stopObservingEvents();
-
+        Throwable t = getFirstNonExecutionException(event.getException());
         if ((t instanceof InterruptedException) || (t instanceof CancellationException)) {
             // Finish silently
         } else {
@@ -325,37 +329,33 @@ public class BaskingNotificationManager {
             finished.hasCancelButton = false;
             finished.ongoing = false;
             finished.iconId = R.drawable.stat_notify_sync_error;
-            updateFinished();
+            invalidateFinishedNotification();
         }
     }
 
     private void startObservingEvents(EventBus syncEventBus) {
         Log.d("BaskingNotificationManager", "Registering on bus: " + this.toString());
-        this.observeEvents = true;
+        this.handleOngoingEvents = true;
         syncEventBus.register(this);
     }
 
-    private void stopObservingEvents() {
+    private void stopHandlingOngoingEvents() {
         Log.d("BaskingNotificationManager", "Unregistering from bus: " + this.toString());
         if (syncServiceEventBus != null) {
             // We may receive events for a short period after calling
             // unregister() as an async event bus is being used. To work around,
             // set a flag and check it before handling events.
-            if (observeEvents) {
-                this.observeEvents = false;
+            if (handleOngoingEvents) {
+                this.handleOngoingEvents = false;
                 syncServiceEventBus.unregister(this);
             }
         }
     }
 
-    private void log(Object e) {
-        Log.d("BaskingNotificationManager", e.toString());
-    }
-
     /**
-     * Returns the first non-ExecutionException in the given throwable's causal chain. In the
-     * case that there is no non-ExecutionException to return (i.e. the root exception is an
-     * execution exception), the root exception will be returned.
+     * Returns the first non-ExecutionException in the given throwable's causal chain. In the case
+     * that there is no non-ExecutionException to return (i.e. the root exception is an execution
+     * exception), the root exception will be returned.
      */
     private static Throwable getFirstNonExecutionException(Throwable t) {
         Throwable cause = t.getCause();

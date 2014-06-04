@@ -178,9 +178,8 @@ public class LoginPreference extends DialogPreference {
     }
 
     /**
-     * Check the credentials by attempting to log in. Returns null if
-     * successful, else the future will fail with an exception from
-     * {@link Client#login(String, String)}.
+     * Check the credentials by attempting to log in. Returns null if successful, else the future
+     * will fail with an exception from {@link Client#login(String, String)}.
      */
     private ListenableFuture<Void> validateCredentials(String username, String password) {
         return executor.submit(new Callable<Void>() {

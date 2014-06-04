@@ -19,4 +19,12 @@
 
     <style name="BaskingDialogActionBar" parent="@style/FSDialogActionBar"></style>
 
+    <style name="BaskingMainProgressBar">
+        <item name="hcpb_progress_color">@color/progress_bar_color</item>
+        <item name="hcpb_progress_background_color">@color/progress_bar_background_color</item>
+        <item name="hcpb_thumb_visible">false</item>
+        <item name="hcpb_marker_visible">false</item>
+        <item name="hcpb_stroke_width">6dp</item>
+    </style>
+
 </resources>

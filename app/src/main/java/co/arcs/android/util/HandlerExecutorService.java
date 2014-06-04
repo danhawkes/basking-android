@@ -14,11 +14,10 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * An executor service that runs tasks on an Android {@link Handler}. This in
- * intended to be used as a bridge between ExecutorService-driven network code
- * and the main thread's {@link Looper}/{@link Handler} setup.
- * <p>
- * Typical use in conjunction with {@link ApiInterfaceImpl} would be as follows:
+ * An executor service that runs tasks on an Android {@link Handler}. This in intended to be used as
+ * a bridge between ExecutorService-driven network code and the main thread's {@link Looper}/{@link
+ * Handler} setup. <p> Typical use in conjunction with {@link ApiInterfaceImpl} would be as
+ * follows:
  *
  * <pre>
  * ExecutorService exec = new HandlerExecutorService(new Handler(Looper.getMainLooper()));
@@ -34,10 +33,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * }, exec);
  * </pre>
  *
- * </p>
- * <p>
- * Source slightly modified from Guava's SameThreadExecutorService.
- * </p>
+ * </p> <p> Source slightly modified from Guava's SameThreadExecutorService. </p>
  */
 public class HandlerExecutorService extends AbstractListeningExecutorService {
 
@@ -131,8 +127,7 @@ public class HandlerExecutorService extends AbstractListeningExecutorService {
     }
 
     /**
-     * Checks if the executor has been shut down and increments the running task
-     * count.
+     * Checks if the executor has been shut down and increments the running task count.
      *
      * @throws RejectedExecutionException
      *         if the executor has been previously shutdown

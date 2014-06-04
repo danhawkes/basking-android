@@ -2,4 +2,7 @@
 <resources>
     <color name="background_1">#1c394d</color>
     <color name="background_2">#346b90</color>
+    <color name="progress_bar_color">@android:color/white</color>
+    <color name="progress_bar_color_failed">#ffd10000</color>
+    <color name="progress_bar_background_color">@color/background_1</color>
 </resources>

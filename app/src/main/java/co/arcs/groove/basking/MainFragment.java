@@ -14,16 +14,23 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 
+import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import co.arcs.groove.basking.BaskingSyncService.SyncBinder;
-import co.arcs.groove.basking.event.impl.SyncEvent;
+import co.arcs.groove.basking.event.Events.SyncProcessFinishedEvent;
+import co.arcs.groove.basking.event.Events.SyncProcessFinishedWithErrorEvent;
+import de.passsy.holocircularprogressbar.HoloCircularProgressBar;
 
 public class MainFragment extends Fragment {
 
     private Button syncButton;
     private BaskingSyncService.SyncBinder serviceBinder;
+    private HoloCircularProgressBar bar1;
+    private TextView textView;
+    private GuiProgressManager guiProgressManager;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -49,6 +56,9 @@ public class MainFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         syncButton = (Button) view.findViewById(R.id.sync_button);
         syncButton.setOnClickListener(syncButtonOnClickListener);
+        bar1 = (HoloCircularProgressBar) view.findViewById(R.id.bar1);
+        textView = (TextView) view.findViewById(R.id.text);
+        guiProgressManager = new GuiProgressManager(bar1, textView);
     }
 
     @Override
@@ -95,7 +105,9 @@ public class MainFragment extends Fragment {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             MainFragment.this.serviceBinder = (SyncBinder) service;
-            serviceBinder.getSyncEventBus().register(MainFragment.this);
+            EventBus bus = serviceBinder.getSyncEventBus();
+            bus.register(MainFragment.this);
+            bus.register(guiProgressManager);
         }
     };
 
@@ -109,12 +121,12 @@ public class MainFragment extends Fragment {
     };
 
     @Subscribe
-    public void onEvent(SyncEvent.Finished e) {
+    public void onEvent(SyncProcessFinishedEvent e) {
         syncButton.setEnabled(true);
     }
 
     @Subscribe
-    public void onEvent(SyncEvent.FinishedWithError e) {
+    public void onEvent(SyncProcessFinishedWithErrorEvent e) {
         syncButton.setEnabled(true);
     }
 

@@ -35,14 +35,14 @@ public class BaskingSyncService extends Service {
     private static final String TAG = BaskingSyncService.class.getSimpleName();
 
     /**
-     * A sync is expected to finish within half an hour. More than that, and
-     * it's assumed to have gone wrong and its wakelock should be released.
+     * A sync is expected to finish within half an hour. More than that, and it's assumed to have
+     * gone wrong and its wakelock should be released.
      */
     private static final long WAKELOCK_TIMEOUT = 1000 * 60 * 30;
 
     private SyncService syncService;
     private final SyncBinder binder = new SyncBinder();
-    private BaskingNotificationManager notificationManager;
+    private NotificationProgressManager notificationManager;
     private ListenableFuture<Outcome> syncOutcomeFuture;
     private WakeLock wakeLock;
     private WifiLock wifiLock;
@@ -50,7 +50,7 @@ public class BaskingSyncService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        this.notificationManager = new BaskingNotificationManager(this);
+        this.notificationManager = new NotificationProgressManager(this);
         this.syncService = new SyncService(new AsyncEventBus(MainThreadExecutorService.get()));
     }
 
@@ -136,9 +136,8 @@ public class BaskingSyncService extends Service {
     }
 
     private void moveToForeground() {
-        Notification notification = notificationManager.newOngoingNotification(getApplicationContext())
-                .build();
-        startForeground(BaskingNotificationManager.NOTIFICATION_ID_ONGOING, notification);
+        Notification notification = notificationManager.newOngoingNotification(getApplicationContext());
+        startForeground(NotificationProgressManager.NOTIFICATION_ID_ONGOING, notification);
     }
 
     private void moveToBackground() {

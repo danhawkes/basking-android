@@ -13,7 +13,27 @@
         android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
         android:text="@string/sync"/>
+
+    <TextView
+        android:id="@+id/text"
+        android:gravity="center"
+        android:layout_centerInParent="true"
+        android:layout_width="150dp"
+        android:layout_height="50dp"/>
+
+    <de.passsy.holocircularprogressbar.HoloCircularProgressBar
+        style="@style/BaskingMainProgressBar"
+        android:layout_centerInParent="true"
+        android:layout_width="300dp"
+        android:layout_height="300dp"/>
+
+    <de.passsy.holocircularprogressbar.HoloCircularProgressBar
+        style="@style/BaskingMainProgressBar"
+        android:id="@+id/bar1"
+        android:layout_centerInParent="true"
+        android:layout_width="300dp"
+        android:layout_height="300dp"/>
+
 
 </RelativeLayout>
