@@ -2,38 +2,58 @@ package co.arcs.groove.basking;
 
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
+import android.content.res.Resources;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.google.common.eventbus.Subscribe;
 
 import co.arcs.groove.basking.TricklingProgressAnimator.Listener;
 import co.arcs.groove.basking.event.Events.BuildSyncPlanFinishedEvent;
+import co.arcs.groove.basking.event.Events.BuildSyncPlanStartedEvent;
+import co.arcs.groove.basking.event.Events.DownloadSongProgressChangedEvent;
+import co.arcs.groove.basking.event.Events.DownloadSongStartedEvent;
 import co.arcs.groove.basking.event.Events.DownloadSongsFinishedEvent;
+import co.arcs.groove.basking.event.Events.DownloadSongsStartedEvent;
 import co.arcs.groove.basking.event.Events.GeneratePlaylistsFinishedEvent;
+import co.arcs.groove.basking.event.Events.GeneratePlaylistsStartedEvent;
 import co.arcs.groove.basking.event.Events.GetSongsToSyncProgressChangedEvent;
+import co.arcs.groove.basking.event.Events.GetSongsToSyncStartedEvent;
 import co.arcs.groove.basking.event.Events.SyncProcessFinishedEvent;
 import co.arcs.groove.basking.event.Events.SyncProcessFinishedWithErrorEvent;
 import co.arcs.groove.basking.event.Events.SyncProcessStartedEvent;
-import co.arcs.groove.basking.event.TaskEvent.TaskStartedEvent;
 import de.passsy.holocircularprogressbar.HoloCircularProgressBar;
 
 public class GuiProgressManager {
 
+    private final Resources res;
     private final HoloCircularProgressBar bar1;
-    private final TextView textView;
-    private final TricklingProgressAnimator trickleAnimator;
+    private final ProgressBar secondaryBar;
+    private final Button button;
+    private final TextView secondaryText;
+    private final TricklingProgressAnimator<HoloCircularProgressBar> trickleAnimator;
+    private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean ignoreBusEvents;
 
-    public GuiProgressManager(HoloCircularProgressBar bar1, TextView textView) {
+    public GuiProgressManager(HoloCircularProgressBar bar1,
+            ProgressBar secondaryBar,
+            Button button,
+            TextView secondaryText) {
+        this.res = bar1.getResources();
         this.bar1 = bar1;
-        this.textView = textView;
-        this.trickleAnimator = new TricklingProgressAnimator(HoloCircularProgressBar.class,
+        this.secondaryBar = secondaryBar;
+        this.button = button;
+        this.secondaryText = secondaryText;
+        this.trickleAnimator = new TricklingProgressAnimator<HoloCircularProgressBar>(HoloCircularProgressBar.class,
                 bar1,
                 "progress");
         trickleAnimator.setListener(trickleAnimatorListener);
     }
 
-    private Listener trickleAnimatorListener = new Listener() {
+    private final Listener trickleAnimatorListener = new Listener() {
         @Override
         public void onAnimationCompleted(float progress) {
             if (progress == 1.0f) {
@@ -53,9 +73,9 @@ public class GuiProgressManager {
     }
 
     @Subscribe
-    public void onEvent(TaskStartedEvent e) {
+    public void onEvent(GetSongsToSyncStartedEvent e) {
         if (!ignoreBusEvents) {
-            textView.setText(e.getTask().getClass().getSimpleName());
+            button.setText(res.getString(R.string.status_retrieving_profile));
         }
     }
 
@@ -69,6 +89,13 @@ public class GuiProgressManager {
     }
 
     @Subscribe
+    public void onEvent(BuildSyncPlanStartedEvent e) {
+        if (!ignoreBusEvents) {
+            button.setText(res.getString(R.string.status_building_sync_plan));
+        }
+    }
+
+    @Subscribe
     public void onEvent(BuildSyncPlanFinishedEvent e) {
         if (!ignoreBusEvents) {
             trickleAnimator.increment();
@@ -76,9 +103,41 @@ public class GuiProgressManager {
     }
 
     @Subscribe
+    public void onEvent(DownloadSongsStartedEvent e) {
+        if (!ignoreBusEvents) {
+            button.setText(res.getString(R.string.status_downloading));
+            secondaryText.animate().alpha(1.0f).start();
+            secondaryBar.animate().alpha(1.0f).start();
+        }
+    }
+
+    @Subscribe
+    public void onEvent(DownloadSongStartedEvent e) {
+        if (!ignoreBusEvents) {
+            secondaryText.setText(e.getSong().getArtistName() + " - " + e.getSong().getName());
+        }
+    }
+
+    @Subscribe
+    public void onEvent(DownloadSongProgressChangedEvent e) {
+        if (!ignoreBusEvents) {
+            secondaryBar.setProgress((int) (e.getFraction() * secondaryBar.getMax()));
+        }
+    }
+
+    @Subscribe
     public void onEvent(DownloadSongsFinishedEvent e) {
         if (!ignoreBusEvents) {
             trickleAnimator.increment();
+            secondaryText.animate().alpha(0.0f).start();
+            secondaryBar.animate().alpha(0.0f).start();
+        }
+    }
+
+    @Subscribe
+    public void onEvent(GeneratePlaylistsStartedEvent e) {
+        if (!ignoreBusEvents) {
+            button.setText(res.getString(R.string.status_generating_playlists));
         }
     }
 
@@ -93,6 +152,13 @@ public class GuiProgressManager {
     public void onEvent(SyncProcessFinishedEvent e) {
         if (!ignoreBusEvents) {
             ignoreBusEvents = true;
+            button.setText(res.getString(R.string.status_finished));
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    button.setText(res.getString(R.string.sync));
+                }
+            }, 2000);
             trickleAnimator.finish();
         }
     }
@@ -101,6 +167,9 @@ public class GuiProgressManager {
     public void onEvent(SyncProcessFinishedWithErrorEvent e) {
         if (!ignoreBusEvents) {
             ignoreBusEvents = true;
+            button.setText(res.getString(R.string.sync));
+            secondaryText.animate().alpha(0.0f).start();
+            secondaryBar.animate().alpha(0.0f).start();
             trickleAnimator.setTrickleEnabled(false);
             ObjectAnimator animator = ObjectAnimator.ofInt(bar1,
                     "progressColor",

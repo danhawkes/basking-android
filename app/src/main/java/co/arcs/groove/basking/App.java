@@ -19,13 +19,14 @@ import co.arcs.groove.basking.pref.AppPreferences.Keys;
         formUriBasicAuthPassword = "p2XDLB6jNdGrAfQSwhWb2MGl")
 public class App extends android.app.Application {
 
-    static AppPreferences appPreferences;
+    private static AppPreferences appPreferences;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
         ACRA.init(this);
+        ACRA.getErrorReporter().setEnabled(!BuildConfig.DEBUG);
 
         App.appPreferences = new AppPreferences(this);
         appPreferences.initialiseDefaults();

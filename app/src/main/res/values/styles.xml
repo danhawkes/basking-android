@@ -4,6 +4,16 @@
         <item name="android:actionBarStyle">@style/BaskingActionBar</item>
         <item name="android:windowBackground">@drawable/background</item>
         <item name="android:colorBackground">@drawable/background</item>
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="android:textAppearance">@style/BaskingTextAppearance</item>
+        <item name="android:textAppearanceSmall">@style/BaskingTextAppearanceSmall</item>
+        <item name="android:textAppearanceMedium">@style/BaskingTextAppearanceMedium</item>
+        <item name="android:textAppearanceLarge">@style/BaskingTextAppearanceLarge</item>
+        <item name="android:textAppearanceLargePopupMenu">
+            @style/BaskingTextAppearanceLargePopupMenu
+        </item>
+        <item name="android:textAppearanceSmallPopupMenu">@style/BaskingTextAppearanceSmallPopupMenu
+        </item>
     </style>
 
     <style name="ThemeBasking" parent="@style/ThemeBaskingBase"/>
@@ -12,9 +22,55 @@
         <item name="android:actionBarStyle">@style/BaskingDialogActionBar</item>
     </style>
 
+    <style name="BaskingTextAppearance" parent="android:TextAppearance.Holo">
+        <item name="android:fontFamily">sans-serif-condensed</item>
+    </style>
+
+    <style name="BaskingTextAppearanceInverse" parent="android:TextAppearance.Holo.Inverse">
+        <item name="android:fontFamily">sans-serif-condensed</item>
+    </style>
+
+    <style name="BaskingTextAppearanceLarge" parent="android:TextAppearance.Holo.Large">
+        <item name="android:fontFamily">sans-serif-condensed</item>
+    </style>
+
+    <style name="BaskingTextAppearanceLargeInverse" parent="android:TextAppearance.Holo.Large.Inverse">
+        <item name="android:fontFamily">sans-serif-condensed</item>
+    </style>
+
+    <style name="BaskingTextAppearanceMedium" parent="android:TextAppearance.Holo.Medium">
+        <item name="android:fontFamily">sans-serif-condensed</item>
+    </style>
+
+    <style name="BaskingTextAppearanceMediumInverse" parent="android:TextAppearance.Holo.Medium.Inverse">
+        <item name="android:fontFamily">sans-serif-condensed</item>
+    </style>
+
+    <style name="BaskingTextAppearanceSmall" parent="android:TextAppearance.Holo.Small">
+        <item name="android:fontFamily">sans-serif-condensed</item>
+    </style>
+
+    <style name="BaskingTextAppearanceSmallInverse" parent="android:TextAppearance.Holo.Small.Inverse">
+        <item name="android:fontFamily">sans-serif-condensed</item>
+    </style>
+
+    <style name="BaskingTextAppearanceLargePopupMenu" parent="android:TextAppearance.Holo.Widget.PopupMenu.Large">
+        <item name="android:fontFamily">sans-serif-condensed</item>
+    </style>
+
+    <style name="BaskingTextAppearanceSmallPopupMenu" parent="android:TextAppearance.Holo.Widget.PopupMenu.Small">
+        <item name="android:fontFamily">sans-serif-condensed</item>
+    </style>
+
     <style name="BaskingActionBar" parent="@android:style/Widget.Holo.ActionBar.Solid">
         <item name="android:background">@android:color/transparent</item>
-        <item name="android:displayOptions">showTitle</item>
+        <item name="android:displayOptions"></item>
+        <item name="android:titleTextStyle">@style/BaskingActionBarTitleText</item>
+    </style>
+
+    <style name="BaskingActionBarTitleText" parent="android:TextAppearance.Holo.Widget.ActionBar.Title">
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:gravity">center_vertical</item>
     </style>
 
     <style name="BaskingDialogActionBar" parent="@style/FSDialogActionBar"></style>

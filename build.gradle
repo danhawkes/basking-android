@@ -14,7 +14,5 @@ buildscript {
 allprojects {
     repositories {
         mavenCentral()
-        maven { url "https://arcs.co/archiva/repository/external/" }
-        maven { url "https://arcs.co/archiva/repository/snapshots/" }
     }
 }

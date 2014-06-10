@@ -1,0 +1,74 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
+                tools:context=".MainActivity">
+
+    <TextView
+        style="@style/BaskingActionBarTitleText"
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/actionBarSize"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:text="@string/app_name"/>
+
+    <FrameLayout
+        android:layout_width="300dp"
+        android:layout_height="320dp"
+        android:layout_centerInParent="true"
+        android:paddingBottom="20dp">
+
+        <!-- This is just used as a background for when fading out the bar below -->
+        <de.passsy.holocircularprogressbar.HoloCircularProgressBar
+            style="@style/BaskingMainProgressBar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"/>
+
+        <de.passsy.holocircularprogressbar.HoloCircularProgressBar
+            android:id="@+id/primaryBar"
+            style="@style/BaskingMainProgressBar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+
+        <TextView
+            android:id="@+id/secondaryText"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="60dp"
+            android:alpha="0.0"
+            android:ellipsize="middle"
+            android:fontFamily="sans-serif-condensed"
+            android:gravity="center_horizontal"
+            android:singleLine="true"
+            android:textAllCaps="true"
+            android:textColor="#80ffffff"
+            android:textSize="12sp"/>
+
+        <ProgressBar
+            android:id="@+id/secondaryBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="140dp"
+            android:layout_height="2dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="80dp"
+            android:alpha="0.0"
+            android:max="100"
+
+            android:progressDrawable="@drawable/progress_song_download"/>
+
+        <Button
+            android:id="@+id/primaryTextButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="9dp"
+            android:background="@drawable/button"
+            android:fontFamily="sans-serif-condensed"
+            android:text="@string/sync"/>
+    </FrameLayout>
+
+</RelativeLayout>

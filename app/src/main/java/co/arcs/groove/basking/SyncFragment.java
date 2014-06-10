@@ -14,22 +14,18 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 
 import co.arcs.groove.basking.BaskingSyncService.SyncBinder;
-import co.arcs.groove.basking.event.Events.SyncProcessFinishedEvent;
-import co.arcs.groove.basking.event.Events.SyncProcessFinishedWithErrorEvent;
 import de.passsy.holocircularprogressbar.HoloCircularProgressBar;
 
-public class MainFragment extends Fragment {
+public class SyncFragment extends Fragment {
 
-    private Button syncButton;
+    private Button primaryTextButton;
     private BaskingSyncService.SyncBinder serviceBinder;
-    private HoloCircularProgressBar bar1;
-    private TextView textView;
     private GuiProgressManager guiProgressManager;
 
     @Override
@@ -48,17 +44,18 @@ public class MainFragment extends Fragment {
             ViewGroup container,
             Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        return inflater.inflate(R.layout.fragment_main, container, false);
+        return inflater.inflate(R.layout.fragment_sync, container, false);
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        syncButton = (Button) view.findViewById(R.id.sync_button);
-        syncButton.setOnClickListener(syncButtonOnClickListener);
-        bar1 = (HoloCircularProgressBar) view.findViewById(R.id.bar1);
-        textView = (TextView) view.findViewById(R.id.text);
-        guiProgressManager = new GuiProgressManager(bar1, textView);
+        primaryTextButton = (Button) view.findViewById(R.id.primaryTextButton);
+        primaryTextButton.setOnClickListener(syncButtonOnClickListener);
+        HoloCircularProgressBar bar1 = (HoloCircularProgressBar) view.findViewById(R.id.primaryBar);
+        ProgressBar bar2 = (ProgressBar) view.findViewById(R.id.secondaryBar);
+        TextView secondaryText = (TextView) view.findViewById(R.id.secondaryText);
+        guiProgressManager = new GuiProgressManager(bar1, bar2, primaryTextButton, secondaryText);
     }
 
     @Override
@@ -68,7 +65,7 @@ public class MainFragment extends Fragment {
                 .getPrefs()
                 .registerOnSharedPreferenceChangeListener(preferenceChangeListener);
 
-        syncButton.setEnabled(canSync());
+        primaryTextButton.setEnabled(canSync());
     }
 
     @Override
@@ -91,7 +88,7 @@ public class MainFragment extends Fragment {
     private final OnSharedPreferenceChangeListener preferenceChangeListener = new OnSharedPreferenceChangeListener() {
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-            syncButton.setEnabled(canSync());
+            primaryTextButton.setEnabled(canSync());
         }
     };
 
@@ -99,14 +96,14 @@ public class MainFragment extends Fragment {
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            MainFragment.this.serviceBinder = null;
+            SyncFragment.this.serviceBinder = null;
         }
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            MainFragment.this.serviceBinder = (SyncBinder) service;
+            SyncFragment.this.serviceBinder = (SyncBinder) service;
             EventBus bus = serviceBinder.getSyncEventBus();
-            bus.register(MainFragment.this);
+            bus.register(SyncFragment.this);
             bus.register(guiProgressManager);
         }
     };
@@ -115,20 +112,9 @@ public class MainFragment extends Fragment {
 
         @Override
         public void onClick(View v) {
-            syncButton.setEnabled(false);
             getActivity().startService(BaskingSyncService.newStartIntent(getActivity()));
         }
     };
-
-    @Subscribe
-    public void onEvent(SyncProcessFinishedEvent e) {
-        syncButton.setEnabled(true);
-    }
-
-    @Subscribe
-    public void onEvent(SyncProcessFinishedWithErrorEvent e) {
-        syncButton.setEnabled(true);
-    }
 
     private boolean canSync() {
         boolean syncOngoing = (serviceBinder != null) && (serviceBinder.isSyncOngoing());

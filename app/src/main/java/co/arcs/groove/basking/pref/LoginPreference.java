@@ -108,11 +108,6 @@ public class LoginPreference extends DialogPreference {
         }
     }
 
-    @Override
-    public void onDismiss(DialogInterface dialog) {
-        super.onDismiss(dialog);
-    }
-
     private final View.OnClickListener okButtonOnClickListener = new View.OnClickListener() {
 
         @Override
