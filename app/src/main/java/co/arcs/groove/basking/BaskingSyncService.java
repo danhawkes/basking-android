@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 import co.arcs.android.util.MainThreadExecutorService;
 import co.arcs.groove.basking.pref.AppPreferences.Keys;
 import co.arcs.groove.basking.task.SyncTask.Outcome;
+import co.arcs.groove.basking.ui.NotificationProgressManager;
 
 public class BaskingSyncService extends Service {
 
@@ -213,13 +214,13 @@ public class BaskingSyncService extends Service {
         }
     }
 
-    static Intent newStartIntent(Context context) {
+    public static Intent newStartIntent(Context context) {
         Intent intent = new Intent(context, BaskingSyncService.class);
         intent.setAction(ACTION_START);
         return intent;
     }
 
-    static Intent newStopIntent(Context context) {
+    public static Intent newStopIntent(Context context) {
         Intent intent = new Intent(context, BaskingSyncService.class);
         intent.setAction(ACTION_STOP);
         return intent;

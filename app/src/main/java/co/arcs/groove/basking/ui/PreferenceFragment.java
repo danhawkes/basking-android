@@ -1,10 +1,12 @@
-package co.arcs.groove.basking;
+package co.arcs.groove.basking.ui;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import co.arcs.groove.basking.R;
 
 public class PreferenceFragment extends android.preference.PreferenceFragment {
 

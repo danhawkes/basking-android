@@ -1,4 +1,4 @@
-package co.arcs.groove.basking;
+package co.arcs.groove.basking.ui;
 
 import android.app.Fragment;
 import android.app.LoaderManager.LoaderCallbacks;
@@ -26,6 +26,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.io.File;
+
+import co.arcs.groove.basking.R;
 
 public class LibraryFragment extends Fragment {
 

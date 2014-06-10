@@ -1,4 +1,4 @@
-package co.arcs.groove.basking;
+package co.arcs.groove.basking.ui;
 
 import android.app.Fragment;
 import android.app.Service;
@@ -19,13 +19,16 @@ import android.widget.TextView;
 
 import com.google.common.eventbus.EventBus;
 
+import co.arcs.groove.basking.App;
+import co.arcs.groove.basking.BaskingSyncService;
 import co.arcs.groove.basking.BaskingSyncService.SyncBinder;
+import co.arcs.groove.basking.R;
 import de.passsy.holocircularprogressbar.HoloCircularProgressBar;
 
 public class SyncFragment extends Fragment {
 
     private Button primaryTextButton;
-    private BaskingSyncService.SyncBinder serviceBinder;
+    private SyncBinder serviceBinder;
     private GuiProgressManager guiProgressManager;
 
     @Override

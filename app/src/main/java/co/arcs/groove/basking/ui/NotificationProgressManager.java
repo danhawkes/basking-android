@@ -1,4 +1,4 @@
-package co.arcs.groove.basking;
+package co.arcs.groove.basking.ui;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
+import co.arcs.groove.basking.BaskingSyncService;
+import co.arcs.groove.basking.R;
 import co.arcs.groove.basking.event.Events.BuildSyncPlanProgressChangedEvent;
 import co.arcs.groove.basking.event.Events.BuildSyncPlanStartedEvent;
 import co.arcs.groove.basking.event.Events.DeleteFilesStartedEvent;
@@ -50,8 +52,8 @@ import co.arcs.groove.thresher.GroovesharkException.ServerErrorException;
  */
 public class NotificationProgressManager {
 
-    static final int NOTIFICATION_ID_ONGOING = 23874;
-    static final int NOTIFICATION_ID_FINISHED = 87632;
+    public static final int NOTIFICATION_ID_ONGOING = 23874;
+    private static final int NOTIFICATION_ID_FINISHED = 87632;
     private static final int MSG_UPDATE_ONGOING = 1;
     private static final int MSG_UPDATE_FINISHED = 2;
     private static final int NOTIFICATION_UPDATE_INTERVAL = 100;

@@ -1,4 +1,4 @@
-package co.arcs.groove.basking;
+package co.arcs.groove.basking.ui;
 
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
@@ -11,7 +11,8 @@ import android.widget.TextView;
 
 import com.google.common.eventbus.Subscribe;
 
-import co.arcs.groove.basking.TricklingProgressAnimator.Listener;
+import co.arcs.groove.basking.R;
+import co.arcs.groove.basking.ui.TricklingProgressAnimator.Listener;
 import co.arcs.groove.basking.event.Events.BuildSyncPlanFinishedEvent;
 import co.arcs.groove.basking.event.Events.BuildSyncPlanStartedEvent;
 import co.arcs.groove.basking.event.Events.DownloadSongProgressChangedEvent;

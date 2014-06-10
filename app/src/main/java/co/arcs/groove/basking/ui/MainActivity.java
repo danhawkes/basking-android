@@ -1,4 +1,4 @@
-package co.arcs.groove.basking;
+package co.arcs.groove.basking.ui;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -15,6 +15,7 @@ import com.jfeinstein.jazzyviewpager.JazzyViewPager.TransitionEffect;
 import java.io.File;
 
 import co.arcs.android.fileselector.FileSelectorActivity;
+import co.arcs.groove.basking.R;
 import co.arcs.groove.basking.pref.SyncDirPreference;
 
 public class MainActivity extends Activity implements SyncDirPreference.Listener {

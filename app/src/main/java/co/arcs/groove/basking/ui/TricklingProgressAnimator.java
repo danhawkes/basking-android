@@ -1,4 +1,4 @@
-package co.arcs.groove.basking;
+package co.arcs.groove.basking.ui;
 
 import android.animation.Animator;
 import android.animation.Animator.AnimatorListener;
