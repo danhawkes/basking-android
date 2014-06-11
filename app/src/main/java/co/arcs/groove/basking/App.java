@@ -1,13 +1,12 @@
 package co.arcs.groove.basking;
 
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-
 import org.acra.ACRA;
 import org.acra.annotation.ReportsCrashes;
 
+import co.arcs.groove.basking.inject.AppModule;
 import co.arcs.groove.basking.pref.AppPreferences;
 import co.arcs.groove.basking.pref.AppPreferences.Keys;
+import dagger.ObjectGraph;
 
 @ReportsCrashes(
         formKey = "",
@@ -19,7 +18,7 @@ import co.arcs.groove.basking.pref.AppPreferences.Keys;
         formUriBasicAuthPassword = "p2XDLB6jNdGrAfQSwhWb2MGl")
 public class App extends android.app.Application {
 
-    private static AppPreferences appPreferences;
+    private ObjectGraph graph;
 
     @Override
     public void onCreate() {
@@ -28,29 +27,14 @@ public class App extends android.app.Application {
         ACRA.init(this);
         ACRA.getErrorReporter().setEnabled(!BuildConfig.DEBUG);
 
-        App.appPreferences = new AppPreferences(this);
-        appPreferences.initialiseDefaults();
+        this.graph = ObjectGraph.create(new AppModule(this));
 
-        appPreferences.getPrefs()
-                .registerOnSharedPreferenceChangeListener(new OnSharedPreferenceChangeListener() {
-
-                    @Override
-                    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
-                            String key) {
-
-                        if (key.equals(Keys.BOOL_BACKGROUND_SYNC)) {
-                            boolean enabled = sharedPreferences.getBoolean(key, false);
-                            BackgroundSyncScheduler.reschedule(App.this, enabled);
-                        }
-                    }
-                });
-
-        if (appPreferences.backgroundSyncEnabled()) {
-            BackgroundSyncScheduler.reschedule(this, true);
-        }
+        // Initialise default preferences, and re-schedule alarms
+        graph.get(AppPreferences.class).initDefaults();
+        graph.get(BackgroundSyncScheduler.class).init();
     }
 
-    public static AppPreferences getAppPreferences() {
-        return appPreferences;
+    public void inject(Object object) {
+        graph.inject(object);
     }
 }

@@ -19,14 +19,18 @@ import android.widget.TextView;
 
 import com.google.common.eventbus.EventBus;
 
+import javax.inject.Inject;
+
 import co.arcs.groove.basking.App;
 import co.arcs.groove.basking.BaskingSyncService;
 import co.arcs.groove.basking.BaskingSyncService.SyncBinder;
 import co.arcs.groove.basking.R;
+import co.arcs.groove.basking.pref.AppPreferences;
 import de.passsy.holocircularprogressbar.HoloCircularProgressBar;
 
 public class SyncFragment extends Fragment {
 
+    @Inject AppPreferences appPreferences;
     private Button primaryTextButton;
     private SyncBinder serviceBinder;
     private GuiProgressManager guiProgressManager;
@@ -35,6 +39,8 @@ public class SyncFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent i = new Intent(getActivity(), BaskingSyncService.class);
+
+        ((App) getActivity().getApplication()).inject(this);
 
         boolean bound = getActivity().bindService(i, serviceConnection, Service.BIND_AUTO_CREATE);
         if (!bound) {
@@ -64,8 +70,7 @@ public class SyncFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        App.getAppPreferences()
-                .getPrefs()
+        appPreferences.getPrefs()
                 .registerOnSharedPreferenceChangeListener(preferenceChangeListener);
 
         primaryTextButton.setEnabled(canSync());
@@ -74,8 +79,7 @@ public class SyncFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
-        App.getAppPreferences()
-                .getPrefs()
+        appPreferences.getPrefs()
                 .unregisterOnSharedPreferenceChangeListener(preferenceChangeListener);
     }
 
@@ -121,7 +125,7 @@ public class SyncFragment extends Fragment {
 
     private boolean canSync() {
         boolean syncOngoing = (serviceBinder != null) && (serviceBinder.isSyncOngoing());
-        boolean haveCredentials = App.getAppPreferences().hasLoginCredentials();
+        boolean haveCredentials = appPreferences.hasLoginCredentials();
         return !syncOngoing && haveCredentials;
     }
 }

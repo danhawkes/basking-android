@@ -22,7 +22,7 @@ public class AppPreferences {
     /**
      * Initialises the app's preferences with default values. Does nothing if already initialised.
      */
-    public void initialiseDefaults() {
+    public void initDefaults() {
 
         PreferenceManager.setDefaultValues(context, R.xml.settings, true);
 
