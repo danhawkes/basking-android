@@ -9,6 +9,8 @@ import android.os.Message;
 import android.util.Property;
 import android.view.View;
 
+import javax.annotation.Nullable;
+
 public class TricklingProgressAnimator<T extends View> {
 
     public interface Listener {
@@ -136,8 +138,6 @@ public class TricklingProgressAnimator<T extends View> {
         animateToProgress(1.0f, true);
     }
 
-    ///
-
     /**
      * @see #setTrickleEnabled(boolean)
      */
@@ -204,20 +204,20 @@ public class TricklingProgressAnimator<T extends View> {
     /**
      * Sets the progress to use as a base for the trickle progress calculation. Note that actual
      * progress added by trickle events will depend on this value, the current progress, and also
-     * the trickle power (see {@link #setTrickleDecayPower(float)}).
+     * the trickle decay power (see {@link #setTrickleDecayPower(float)}).
      */
-    public void setTrickleDelta(float trickleDelta) {
+    public void setTrickleProgressDelta(float trickleDelta) {
         this.trickleDelta = trickleDelta;
     }
 
-    public float getTrickleMax() {
+    public float getTrickleProgressMax() {
         return trickleMax;
     }
 
     /**
      * Sets the level of progress beyond which the 'trickle' effect is inhibited.
      */
-    public void setTrickleMax(float trickleMax) {
+    public void setTrickleProgressMax(float trickleMax) {
         this.trickleMax = trickleMax;
     }
 
@@ -230,8 +230,6 @@ public class TricklingProgressAnimator<T extends View> {
      * reduces the effect of trickle progress as total progress nears 1.0. A value of 0.5 simulates
      * decreasing exponential decay; 2.0 simulates increasing decay. A value of 1.0 simulates linear
      * decay.
-     *
-     * @param power
      */
     public void setTrickleDecayPower(float power) {
         this.tricklePower = power;
@@ -241,6 +239,11 @@ public class TricklingProgressAnimator<T extends View> {
         return incrementDelta;
     }
 
+    /**
+     * Sets the progress to use as a base for the adding progress with {@link #increment()}. Note
+     * that the actual progress added will depend on this value, the current progress, and also the
+     * increment decay power (see {@link #setIncrementDecayPower(float)}).
+     */
     public void setIncrementDelta(float incrementDelta) {
         this.incrementDelta = incrementDelta;
     }
@@ -257,7 +260,10 @@ public class TricklingProgressAnimator<T extends View> {
         return listener;
     }
 
-    public void setListener(Listener listener) {
+    /**
+     * Sets the listener to receive notification about progress animation events.
+     */
+    public void setListener(@Nullable Listener listener) {
         this.listener = listener;
     }
 }
