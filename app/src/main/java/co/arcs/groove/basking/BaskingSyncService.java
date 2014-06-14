@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 import co.arcs.android.util.MainThreadExecutorService;
 import co.arcs.groove.basking.pref.AppPreferences.Keys;
 import co.arcs.groove.basking.task.SyncTask.Outcome;
-import co.arcs.groove.basking.ui.NotificationProgressManager;
+import co.arcs.groove.basking.ui.NotificationSyncProgressController;
 
 public class BaskingSyncService extends Service {
 
@@ -43,7 +43,7 @@ public class BaskingSyncService extends Service {
 
     private SyncService syncService;
     private final SyncBinder binder = new SyncBinder();
-    private NotificationProgressManager notificationManager;
+    private NotificationSyncProgressController notificationManager;
     private ListenableFuture<Outcome> syncOutcomeFuture;
     private WakeLock wakeLock;
     private WifiLock wifiLock;
@@ -51,7 +51,7 @@ public class BaskingSyncService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        this.notificationManager = new NotificationProgressManager(this);
+        this.notificationManager = new NotificationSyncProgressController(this);
         this.syncService = new SyncService(new AsyncEventBus(MainThreadExecutorService.get()));
     }
 
@@ -138,7 +138,7 @@ public class BaskingSyncService extends Service {
 
     private void moveToForeground() {
         Notification notification = notificationManager.newOngoingNotification(getApplicationContext());
-        startForeground(NotificationProgressManager.NOTIFICATION_ID_ONGOING, notification);
+        startForeground(NotificationSyncProgressController.NOTIFICATION_ID_ONGOING, notification);
     }
 
     private void moveToBackground() {

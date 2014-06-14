@@ -14,34 +14,33 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.google.common.eventbus.EventBus;
 
 import javax.inject.Inject;
 
+import butterknife.ButterKnife;
+import butterknife.InjectView;
 import co.arcs.groove.basking.App;
 import co.arcs.groove.basking.BaskingSyncService;
 import co.arcs.groove.basking.BaskingSyncService.SyncBinder;
 import co.arcs.groove.basking.R;
 import co.arcs.groove.basking.pref.AppPreferences;
-import de.passsy.holocircularprogressbar.HoloCircularProgressBar;
 
 public class SyncFragment extends Fragment {
 
     @Inject AppPreferences appPreferences;
-    private Button primaryTextButton;
+    @InjectView(R.id.syncButton) Button primaryTextButton;
+
     private SyncBinder serviceBinder;
-    private GuiProgressManager guiProgressManager;
+    private CircleSyncProgressController circleSyncProgressController;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Intent i = new Intent(getActivity(), BaskingSyncService.class);
-
         ((App) getActivity().getApplication()).inject(this);
 
+        Intent i = new Intent(getActivity(), BaskingSyncService.class);
         boolean bound = getActivity().bindService(i, serviceConnection, Service.BIND_AUTO_CREATE);
         if (!bound) {
             throw new RuntimeException("Failed to bind to sync service, cannot continue");
@@ -59,12 +58,9 @@ public class SyncFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        primaryTextButton = (Button) view.findViewById(R.id.primaryTextButton);
+        ButterKnife.inject(this, view);
         primaryTextButton.setOnClickListener(syncButtonOnClickListener);
-        HoloCircularProgressBar bar1 = (HoloCircularProgressBar) view.findViewById(R.id.primaryBar);
-        ProgressBar bar2 = (ProgressBar) view.findViewById(R.id.secondaryBar);
-        TextView secondaryText = (TextView) view.findViewById(R.id.secondaryText);
-        guiProgressManager = new GuiProgressManager(bar1, bar2, primaryTextButton, secondaryText);
+        circleSyncProgressController = new CircleSyncProgressController(view);
     }
 
     @Override
@@ -111,7 +107,7 @@ public class SyncFragment extends Fragment {
             SyncFragment.this.serviceBinder = (SyncBinder) service;
             EventBus bus = serviceBinder.getSyncEventBus();
             bus.register(SyncFragment.this);
-            bus.register(guiProgressManager);
+            bus.register(circleSyncProgressController);
         }
     };
 
@@ -125,7 +121,6 @@ public class SyncFragment extends Fragment {
 
     private boolean canSync() {
         boolean syncOngoing = (serviceBinder != null) && (serviceBinder.isSyncOngoing());
-        boolean haveCredentials = appPreferences.hasLoginCredentials();
-        return !syncOngoing && haveCredentials;
+        return !syncOngoing && appPreferences.hasLoginCredentials();
     }
 }

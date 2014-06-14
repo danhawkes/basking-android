@@ -5,14 +5,16 @@ import android.animation.ObjectAnimator;
 import android.content.res.Resources;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.google.common.eventbus.Subscribe;
 
+import butterknife.ButterKnife;
+import butterknife.InjectView;
 import co.arcs.groove.basking.R;
-import co.arcs.groove.basking.ui.TricklingProgressAnimator.Listener;
 import co.arcs.groove.basking.event.Events.BuildSyncPlanFinishedEvent;
 import co.arcs.groove.basking.event.Events.BuildSyncPlanStartedEvent;
 import co.arcs.groove.basking.event.Events.DownloadSongProgressChangedEvent;
@@ -26,29 +28,26 @@ import co.arcs.groove.basking.event.Events.GetSongsToSyncStartedEvent;
 import co.arcs.groove.basking.event.Events.SyncProcessFinishedEvent;
 import co.arcs.groove.basking.event.Events.SyncProcessFinishedWithErrorEvent;
 import co.arcs.groove.basking.event.Events.SyncProcessStartedEvent;
+import co.arcs.groove.basking.ui.TricklingProgressAnimator.Listener;
 import de.passsy.holocircularprogressbar.HoloCircularProgressBar;
 
-public class GuiProgressManager {
+public class CircleSyncProgressController {
 
-    private final Resources res;
-    private final HoloCircularProgressBar bar1;
-    private final ProgressBar secondaryBar;
-    private final Button button;
-    private final TextView secondaryText;
+    @InjectView(R.id.syncButton) Button button;
+    @InjectView(R.id.primaryBar) HoloCircularProgressBar bar1;
+    @InjectView(R.id.primaryText) TextView primaryText;
+    @InjectView(R.id.secondaryBar) ProgressBar secondaryBar;
+    @InjectView(R.id.secondaryText) TextView secondaryText;
+    private final Resources resources;
     private final TricklingProgressAnimator<HoloCircularProgressBar> trickleAnimator;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean ignoreBusEvents;
 
-    public GuiProgressManager(HoloCircularProgressBar bar1,
-            ProgressBar secondaryBar,
-            Button button,
-            TextView secondaryText) {
-        this.res = bar1.getResources();
-        this.bar1 = bar1;
-        this.secondaryBar = secondaryBar;
-        this.button = button;
-        this.secondaryText = secondaryText;
-        this.trickleAnimator = new TricklingProgressAnimator<HoloCircularProgressBar>(HoloCircularProgressBar.class,
+    public CircleSyncProgressController(View viewRoot) {
+        ButterKnife.inject(this, viewRoot);
+        this.resources = bar1.getResources();
+        this.trickleAnimator = new TricklingProgressAnimator<HoloCircularProgressBar>(
+                HoloCircularProgressBar.class,
                 bar1,
                 "progress");
         trickleAnimator.setListener(trickleAnimatorListener);
@@ -66,6 +65,8 @@ public class GuiProgressManager {
     @Subscribe
     public void onEvent(SyncProcessStartedEvent e) {
         ignoreBusEvents = false;
+        button.setEnabled(false);
+        button.animate().alpha(0.0f).start();
         bar1.setProgress(0.0f);
         bar1.setProgressColor(bar1.getResources().getColor(R.color.progress_bar_color));
         bar1.animate().alpha(1.0f).start();
@@ -76,7 +77,8 @@ public class GuiProgressManager {
     @Subscribe
     public void onEvent(GetSongsToSyncStartedEvent e) {
         if (!ignoreBusEvents) {
-            button.setText(res.getString(R.string.status_retrieving_profile));
+            primaryText.setText(resources.getString(R.string.status_retrieving_profile));
+            primaryText.animate().alpha(1.0f).start();
         }
     }
 
@@ -92,7 +94,7 @@ public class GuiProgressManager {
     @Subscribe
     public void onEvent(BuildSyncPlanStartedEvent e) {
         if (!ignoreBusEvents) {
-            button.setText(res.getString(R.string.status_building_sync_plan));
+            primaryText.setText(resources.getString(R.string.status_building_sync_plan));
         }
     }
 
@@ -106,7 +108,7 @@ public class GuiProgressManager {
     @Subscribe
     public void onEvent(DownloadSongsStartedEvent e) {
         if (!ignoreBusEvents) {
-            button.setText(res.getString(R.string.status_downloading));
+            primaryText.setText(resources.getString(R.string.status_downloading));
             secondaryText.animate().alpha(1.0f).start();
             secondaryBar.animate().alpha(1.0f).start();
         }
@@ -138,7 +140,7 @@ public class GuiProgressManager {
     @Subscribe
     public void onEvent(GeneratePlaylistsStartedEvent e) {
         if (!ignoreBusEvents) {
-            button.setText(res.getString(R.string.status_generating_playlists));
+            primaryText.setText(resources.getString(R.string.status_generating_playlists));
         }
     }
 
@@ -153,11 +155,13 @@ public class GuiProgressManager {
     public void onEvent(SyncProcessFinishedEvent e) {
         if (!ignoreBusEvents) {
             ignoreBusEvents = true;
-            button.setText(res.getString(R.string.status_finished));
+            primaryText.setText(resources.getString(R.string.status_finished));
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    button.setText(res.getString(R.string.sync));
+                    primaryText.animate().alpha(0.0f).start();
+                    button.setEnabled(true);
+                    button.animate().alpha(1.0f).start();
                 }
             }, 2000);
             trickleAnimator.finish();
@@ -168,7 +172,9 @@ public class GuiProgressManager {
     public void onEvent(SyncProcessFinishedWithErrorEvent e) {
         if (!ignoreBusEvents) {
             ignoreBusEvents = true;
-            button.setText(res.getString(R.string.sync));
+            button.setEnabled(true);
+            button.animate().alpha(1.0f).start();
+            primaryText.animate().alpha(0.0f).start();
             secondaryText.animate().alpha(0.0f).start();
             secondaryBar.animate().alpha(0.0f).start();
             trickleAnimator.setTrickleEnabled(false);

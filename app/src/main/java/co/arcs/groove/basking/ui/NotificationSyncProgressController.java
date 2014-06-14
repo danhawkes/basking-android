@@ -50,7 +50,7 @@ import co.arcs.groove.thresher.GroovesharkException.ServerErrorException;
  * speed maxes out the CPU, so instead updates from the event bus are batched into updates that get
  * published at a set interval.
  */
-public class NotificationProgressManager {
+public class NotificationSyncProgressController {
 
     public static final int NOTIFICATION_ID_ONGOING = 23874;
     private static final int NOTIFICATION_ID_FINISHED = 87632;
@@ -72,7 +72,7 @@ public class NotificationProgressManager {
     private EventBus syncServiceEventBus;
     private boolean handleOngoingEvents;
 
-    public NotificationProgressManager(Context context) {
+    public NotificationSyncProgressController(Context context) {
         this.context = context;
         this.notMan = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         this.viewPendingIntent = PendingIntent.getActivity(context,

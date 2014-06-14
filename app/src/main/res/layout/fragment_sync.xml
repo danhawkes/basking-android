@@ -18,9 +18,9 @@
         android:layout_width="300dp"
         android:layout_height="320dp"
         android:layout_centerInParent="true"
-        android:paddingBottom="20dp">
+        android:paddingBottom="10dp">
 
-        <!-- This is just used as a background for when fading out the bar below -->
+        <!-- This is just used as a background for when fading the actual bar -->
         <de.passsy.holocircularprogressbar.HoloCircularProgressBar
             style="@style/BaskingMainProgressBar"
             android:layout_width="match_parent"
@@ -45,7 +45,6 @@
             android:fontFamily="sans-serif-condensed"
             android:gravity="center_horizontal"
             android:singleLine="true"
-            android:textAllCaps="true"
             android:textColor="#80ffffff"
             android:textSize="12sp"/>
 
@@ -62,13 +61,22 @@
             android:progressDrawable="@drawable/progress_song_download"/>
 
         <Button
-            android:id="@+id/primaryTextButton"
+            android:id="@+id/syncButton"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="9dp"
+            android:layout_margin="15dp"
             android:background="@drawable/button"
             android:fontFamily="sans-serif-condensed"
             android:text="@string/sync"/>
+
+        <TextView
+            android:id="@+id/primaryText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:alpha="0.0"
+            android:gravity="center_horizontal"
+            android:textAppearance="?android:attr/textAppearanceMedium"/>
     </FrameLayout>
 
 </RelativeLayout>

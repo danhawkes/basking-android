@@ -27,6 +27,8 @@ import android.widget.TextView;
 
 import java.io.File;
 
+import butterknife.ButterKnife;
+import butterknife.InjectView;
 import co.arcs.groove.basking.R;
 
 public class LibraryFragment extends Fragment {
@@ -34,7 +36,7 @@ public class LibraryFragment extends Fragment {
     private static final int LOADER_LIST_ADAPTER = 23580726;
 
     private CursorAdapter adapter;
-    private ListView listView;
+    @InjectView(R.id.list) ListView listView;
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -46,8 +48,8 @@ public class LibraryFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        ButterKnife.inject(this, view);
         adapter = new SongAdapter(getActivity());
-        listView = (ListView) view.findViewById(R.id.list);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(onItemClickListener);
     }
