@@ -17,7 +17,7 @@ import dagger.Provides;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-@Module(injects = {App.class, SyncFragment.class, BackgroundSyncScheduler.class, AppPreferences.class, BackgroundSyncScheduler.class}, library = true)
+@Module(injects = {App.class, BackgroundSyncScheduler.class, AppPreferences.class, SyncFragment.class})
 public class AppModule {
 
     @Qualifier

@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.database.CursorWrapper;
 import android.net.Uri;
@@ -37,6 +39,7 @@ public class LibraryFragment extends Fragment {
 
     private CursorAdapter adapter;
     @InjectView(R.id.list) ListView listView;
+    @InjectView(R.id.listEmpty) View listEmptyView;
 
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -52,6 +55,7 @@ public class LibraryFragment extends Fragment {
         adapter = new SongAdapter(getActivity());
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(onItemClickListener);
+        listView.setEmptyView(listEmptyView);
     }
 
     @Override

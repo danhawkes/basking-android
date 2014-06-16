@@ -24,6 +24,14 @@
         android:layout_height="match_parent"
         android:fastScrollEnabled="true"
         android:paddingTop="?android:attr/actionBarSize"
-        tools:listitem="@layout/library_list_item"/>
+        tools:listitem="@layout/view_library_list_item"/>
+
+    <TextView
+        android:id="@+id/listEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:gravity="center"
+        android:text="No items in collection"/>
 
 </RelativeLayout>

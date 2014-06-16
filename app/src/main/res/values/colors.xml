@@ -5,4 +5,6 @@
     <color name="progress_bar_color">@android:color/white</color>
     <color name="progress_bar_color_failed">#ffd10000</color>
     <color name="progress_bar_background_color">@color/background_1</color>
+    <color name="button">#1effffff</color>
+    <color name="button_pressed">#59ffffff</color>
 </resources>

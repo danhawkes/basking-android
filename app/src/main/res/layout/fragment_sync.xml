@@ -16,23 +16,15 @@
 
     <FrameLayout
         android:layout_width="300dp"
-        android:layout_height="320dp"
-        android:layout_centerInParent="true"
-        android:paddingBottom="10dp">
+        android:layout_height="300dp"
+        android:layout_centerInParent="true">
 
-        <!-- This is just used as a background for when fading the actual bar -->
-        <de.passsy.holocircularprogressbar.HoloCircularProgressBar
-            style="@style/BaskingMainProgressBar"
+        <Button
+            android:id="@+id/syncButton"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_centerInParent="true"/>
-
-        <de.passsy.holocircularprogressbar.HoloCircularProgressBar
-            android:id="@+id/primaryBar"
-            style="@style/BaskingMainProgressBar"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-
+            android:layout_margin="9dp"
+            android:background="@drawable/button"/>
 
         <TextView
             android:id="@+id/secondaryText"
@@ -57,25 +49,22 @@
             android:layout_marginTop="80dp"
             android:alpha="0.0"
             android:max="100"
-
             android:progressDrawable="@drawable/progress_song_download"/>
 
-        <Button
-            android:id="@+id/syncButton"
+        <de.passsy.holocircularprogressbar.HoloCircularProgressBar
+            android:id="@+id/primaryBar"
+            style="@style/BaskingMainProgressBar"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_margin="15dp"
-            android:background="@drawable/button"
-            android:fontFamily="sans-serif-condensed"
-            android:text="@string/sync"/>
+            android:alpha="0.0"/>
 
-        <TextView
+        <co.arcs.groove.basking.ui.FadingTextView
             android:id="@+id/primaryText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:alpha="0.0"
             android:gravity="center_horizontal"
+            android:text="@string/sync"
             android:textAppearance="?android:attr/textAppearanceMedium"/>
     </FrameLayout>
 

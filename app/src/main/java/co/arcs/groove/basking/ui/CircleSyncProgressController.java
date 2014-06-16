@@ -35,7 +35,7 @@ public class CircleSyncProgressController {
 
     @InjectView(R.id.syncButton) Button button;
     @InjectView(R.id.primaryBar) HoloCircularProgressBar bar1;
-    @InjectView(R.id.primaryText) TextView primaryText;
+    @InjectView(R.id.primaryText) FadingTextView primaryText;
     @InjectView(R.id.secondaryBar) ProgressBar secondaryBar;
     @InjectView(R.id.secondaryText) TextView secondaryText;
     private final Resources resources;
@@ -66,7 +66,6 @@ public class CircleSyncProgressController {
     public void onEvent(SyncProcessStartedEvent e) {
         ignoreBusEvents = false;
         button.setEnabled(false);
-        button.animate().alpha(0.0f).start();
         bar1.setProgress(0.0f);
         bar1.setProgressColor(bar1.getResources().getColor(R.color.progress_bar_color));
         bar1.animate().alpha(1.0f).start();
@@ -156,12 +155,11 @@ public class CircleSyncProgressController {
         if (!ignoreBusEvents) {
             ignoreBusEvents = true;
             primaryText.setText(resources.getString(R.string.status_finished));
+            button.setEnabled(true);
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    primaryText.animate().alpha(0.0f).start();
-                    button.setEnabled(true);
-                    button.animate().alpha(1.0f).start();
+                    primaryText.setText(R.string.sync);
                 }
             }, 2000);
             trickleAnimator.finish();
@@ -173,8 +171,7 @@ public class CircleSyncProgressController {
         if (!ignoreBusEvents) {
             ignoreBusEvents = true;
             button.setEnabled(true);
-            button.animate().alpha(1.0f).start();
-            primaryText.animate().alpha(0.0f).start();
+            primaryText.setText(R.string.sync);
             secondaryText.animate().alpha(0.0f).start();
             secondaryBar.animate().alpha(0.0f).start();
             trickleAnimator.setTrickleEnabled(false);
