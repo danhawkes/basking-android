@@ -128,6 +128,8 @@ public class LibraryFragment extends Fragment {
 
     private final LoaderCallbacks<Cursor> listAdapterLoaderCallbacks = new LoaderCallbacks<Cursor>() {
 
+        private final int PLAYLIST_ID_NONE = -1;
+
         private long getPlaylistId() {
 
             String[] projection = new String[]{BaseColumns._ID};
@@ -144,7 +146,7 @@ public class LibraryFragment extends Fragment {
             if (query.moveToFirst()) {
                 return query.getLong(0);
             } else {
-                return -1;
+                return PLAYLIST_ID_NONE;
             }
         }
 
@@ -153,18 +155,23 @@ public class LibraryFragment extends Fragment {
 
             long playlistId = getPlaylistId();
 
-            String[] projection = new String[]{Members._ID,
-                                               AudioColumns.DATA,
-                                               AudioColumns.ARTIST,
-                                               AudioColumns.TITLE,
-                                               AudioColumns.ALBUM,};
+            if (playlistId == PLAYLIST_ID_NONE) {
+                return new Loader<Cursor>(getActivity()) {
+                };
+            } else {
+                String[] projection = new String[]{Members._ID,
+                                                   AudioColumns.DATA,
+                                                   AudioColumns.ARTIST,
+                                                   AudioColumns.TITLE,
+                                                   AudioColumns.ALBUM,};
 
-            return new CursorLoader(getActivity(),
-                    Playlists.Members.getContentUri("external", playlistId),
-                    projection,
-                    null,
-                    null,
-                    Members.PLAY_ORDER);
+                return new CursorLoader(getActivity(),
+                        Playlists.Members.getContentUri("external", playlistId),
+                        projection,
+                        null,
+                        null,
+                        Members.PLAY_ORDER);
+            }
         }
 
         @Override
