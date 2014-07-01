@@ -52,8 +52,10 @@ import co.arcs.groove.thresher.GroovesharkException.ServerErrorException;
  */
 public class NotificationSyncProgressController {
 
-    public static final int NOTIFICATION_ID_ONGOING = 23874;
-    private static final int NOTIFICATION_ID_FINISHED = 87632;
+    public static final int NOTIFICATION_ID_ONGOING = 2387544;
+    private static final int NOTIFICATION_ID_FINISHED = 8764332;
+    public static final int NOTIFICATION_PI_REQUESTCODE_VIEW = 4590867;
+    public static final int NOTIFICATION_PI_REQUESTCODE_CANCEL = 3289253;
     private static final int MSG_UPDATE_ONGOING = 1;
     private static final int MSG_UPDATE_FINISHED = 2;
     private static final int NOTIFICATION_UPDATE_INTERVAL = 100;
@@ -76,11 +78,11 @@ public class NotificationSyncProgressController {
         this.context = context;
         this.notMan = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         this.viewPendingIntent = PendingIntent.getActivity(context,
-                0,
+                NOTIFICATION_PI_REQUESTCODE_VIEW,
                 new Intent(context, MainActivity.class),
                 PendingIntent.FLAG_UPDATE_CURRENT);
         this.cancelPendingIntent = PendingIntent.getService(context,
-                0,
+                NOTIFICATION_PI_REQUESTCODE_CANCEL,
                 BaskingSyncService.newStopIntent(context),
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
