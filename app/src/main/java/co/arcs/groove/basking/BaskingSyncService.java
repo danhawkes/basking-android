@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.File;
+import java.util.concurrent.CancellationException;
 
 import javax.annotation.Nullable;
 
@@ -66,15 +67,12 @@ public class BaskingSyncService extends Service {
         if (intent != null) {
             String command = intent.getAction();
             if (ACTION_START.equals(command)) {
-                if ((syncOutcomeFuture != null) && !syncOutcomeFuture.isDone()) {
-                    syncRunning = true;
-                } else {
-                    syncRunning = startSync();
-                }
+                syncRunning = startSync();
             } else if (ACTION_STOP.equals(command)) {
                 stopSync();
             }
         }
+        // Make sure service is stopped if there's no longer a sync running
         if (!syncRunning) {
             stopSelf();
         }
@@ -84,14 +82,7 @@ public class BaskingSyncService extends Service {
     @Override
     public void onDestroy() {
         // Cancel any running sync
-        if ((syncOutcomeFuture != null) && !syncOutcomeFuture.isDone()) {
-            syncOutcomeFuture.cancel(true);
-        }
-
-        // Release any held locks
-        releaseWakelock();
-        releaseWifiLock();
-
+        stopSync();
         super.onDestroy();
     }
 
@@ -103,6 +94,11 @@ public class BaskingSyncService extends Service {
      */
     private boolean startSync() {
 
+        if (syncOutcomeFuture != null && !syncOutcomeFuture.isDone()) {
+            Log.d(TAG, "Sync start skipped, as one is already running");
+            return true;
+        }
+
         // Load config
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         Config config = new Config();
@@ -112,12 +108,13 @@ public class BaskingSyncService extends Service {
 
         // Bail out if invalid
         if (config.username == null || config.password == null || config.syncDir == null) {
+            Log.d(TAG, "Sync start skipped, as missing account details");
             return false;
         }
 
         // Set up wake/wifi locks, then start sync
         moveToForeground();
-        acquireWakelock();
+        acquireWakeLock();
         acquireWifiLock();
         syncOutcomeFuture = syncService.start(config);
 
@@ -127,12 +124,14 @@ public class BaskingSyncService extends Service {
                 syncOutcomeCallback,
                 MainThreadExecutorService.get());
 
+        Log.d(TAG, "Sync started");
         return true;
     }
 
     private void stopSync() {
         if ((syncOutcomeFuture != null) && !syncOutcomeFuture.isDone()) {
             syncOutcomeFuture.cancel(true);
+            // Other cleanup will happen in sync outcome listener
         }
     }
 
@@ -145,7 +144,7 @@ public class BaskingSyncService extends Service {
         stopForeground(true);
     }
 
-    private void acquireWakelock() {
+    private void acquireWakeLock() {
         if (wakeLock == null) {
             PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
             this.wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
@@ -155,7 +154,7 @@ public class BaskingSyncService extends Service {
         }
     }
 
-    private void releaseWakelock() {
+    private void releaseWakeLock() {
         if ((wakeLock != null) && wakeLock.isHeld()) {
             wakeLock.release();
         }
@@ -183,26 +182,26 @@ public class BaskingSyncService extends Service {
         public void onSuccess(Outcome arg0) {
             Log.d(TAG, "Sync finished successfully");
             moveToBackground();
-            releaseWakelock();
+            releaseWakeLock();
             releaseWifiLock();
             stopSelf();
         }
 
         @Override
         public void onFailure(Throwable arg0) {
-            Log.d(TAG, "Sync finished with error", arg0);
+            if (arg0 instanceof CancellationException) {
+                Log.d(TAG, "Sync cancelled");
+            } else {
+                Log.d(TAG, "Sync finished with error", arg0);
+            }
             moveToBackground();
-            releaseWakelock();
+            releaseWakeLock();
             releaseWifiLock();
             stopSelf();
         }
     };
 
     public class SyncBinder extends android.os.Binder {
-
-        public void start() {
-            startSync();
-        }
 
         public boolean isSyncOngoing() {
             return syncOutcomeFuture != null && !syncOutcomeFuture.isDone();
