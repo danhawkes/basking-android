@@ -32,6 +32,6 @@
         android:layout_height="match_parent"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:gravity="center"
-        android:text="No items in collection"/>
+        android:text="@string/collection_empty"/>
 
 </RelativeLayout>

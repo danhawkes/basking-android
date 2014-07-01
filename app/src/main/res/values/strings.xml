@@ -18,6 +18,9 @@
     <!-- Menu -->
     <string name="menu_source">Source Code</string>
 
+    <!-- Collection -->
+    <string name="collection_empty">No items in collection</string>
+
     <!-- Account preference -->
     <string name="pref_error_username_required">A username is required</string>
     <string name="pref_error_password_required">Min. length is 5 characters</string>
