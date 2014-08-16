@@ -4,6 +4,7 @@
                 android:layout_height="match_parent"
                 android:paddingLeft="@dimen/activity_horizontal_margin"
                 android:paddingRight="@dimen/activity_horizontal_margin"
+                android:id="@android:id/content"
                 tools:context=".MainActivity">
 
     <TextView
@@ -31,7 +32,6 @@
             android:layout_width="160dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="60dp"
             android:alpha="0.0"
             android:ellipsize="middle"
             android:fontFamily="sans-serif-condensed"
@@ -46,7 +46,6 @@
             android:layout_width="140dp"
             android:layout_height="2dp"
             android:layout_gravity="center"
-            android:layout_marginTop="80dp"
             android:alpha="0.0"
             android:max="100"
             android:progressDrawable="@drawable/progress_song_download"/>

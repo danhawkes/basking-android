@@ -68,8 +68,6 @@ public class SyncFragment extends Fragment {
         super.onStart();
         appPreferences.getPrefs()
                 .registerOnSharedPreferenceChangeListener(preferenceChangeListener);
-
-        primaryTextButton.setEnabled(canSync());
     }
 
     @Override
@@ -115,7 +113,11 @@ public class SyncFragment extends Fragment {
 
         @Override
         public void onClick(View v) {
-            getActivity().startService(BaskingSyncService.newStartIntent(getActivity()));
+            if (canSync()) {
+                if (serviceBinder != null) {
+                    serviceBinder.startSync();
+                }
+            }
         }
     };
 

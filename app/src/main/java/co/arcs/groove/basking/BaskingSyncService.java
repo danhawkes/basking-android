@@ -207,6 +207,14 @@ public class BaskingSyncService extends Service {
             return syncOutcomeFuture != null && !syncOutcomeFuture.isDone();
         }
 
+        public void startSync() {
+            BaskingSyncService.this.startSync();
+        }
+
+        public void stopSync() {
+            BaskingSyncService.this.stopSync();
+        }
+
         @Nullable
         public EventBus getSyncEventBus() {
             return syncService.getEventBus();

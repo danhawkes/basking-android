@@ -33,8 +33,8 @@
     <string name="pref_sync_interval_summary_off">Never</string>
 
     <!-- Generic status messages. Used for notifications / the main sync information display. -->
-    <string name="status_retrieving_profile">Retrieving profile…</string>
-    <string name="status_building_sync_plan">Analysing library…</string>
+    <string name="status_retrieving_profile">Signing in…</string>
+    <string name="status_building_sync_plan">Scanning library…</string>
     <string name="status_deleting_items">Deleting removed items…</string>
     <string name="status_downloading">"Downloading…"</string>
     <string name="status_downloading_song">"Downloading '%1$s - %2$s'…"</string>
