@@ -39,6 +39,7 @@
     <string name="status_downloading">"Downloading…"</string>
     <string name="status_downloading_song">"Downloading '%1$s - %2$s'…"</string>
     <string name="status_generating_playlists">Creating playlists…</string>
+    <string name="status_updating_media_library">Updating media library…</string>
     <string name="status_finished">Sync finished</string>
     <string name="status_error_noconnection">No network connection.</string>
     <string name="status_error_cancelled">Sync cancelled.</string>

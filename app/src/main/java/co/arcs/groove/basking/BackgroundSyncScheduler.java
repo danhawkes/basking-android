@@ -31,7 +31,7 @@ public class BackgroundSyncScheduler {
 
         PendingIntent pendingIntent = PendingIntent.getService(context,
                 0,
-                BaskingSyncService.newStartIntent(context),
+                SyncService.newStartIntent(context),
                 0);
 
         AlarmManager alarmMan = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);

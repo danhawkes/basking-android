@@ -18,13 +18,14 @@ import java.io.IOException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
-import co.arcs.groove.basking.BaskingSyncService;
+import co.arcs.groove.basking.SyncService;
 import co.arcs.groove.basking.R;
 import co.arcs.groove.basking.event.Events.BuildSyncPlanProgressChangedEvent;
 import co.arcs.groove.basking.event.Events.BuildSyncPlanStartedEvent;
 import co.arcs.groove.basking.event.Events.DeleteFilesStartedEvent;
 import co.arcs.groove.basking.event.Events.DownloadSongProgressChangedEvent;
 import co.arcs.groove.basking.event.Events.DownloadSongStartedEvent;
+import co.arcs.groove.basking.event.Events.GeneratePlaylistsFinishedEvent;
 import co.arcs.groove.basking.event.Events.GeneratePlaylistsProgressChangedEvent;
 import co.arcs.groove.basking.event.Events.GeneratePlaylistsStartedEvent;
 import co.arcs.groove.basking.event.Events.GetSongsToSyncProgressChangedEvent;
@@ -83,7 +84,7 @@ public class NotificationSyncProgressController {
                 PendingIntent.FLAG_UPDATE_CURRENT);
         this.cancelPendingIntent = PendingIntent.getService(context,
                 NOTIFICATION_PI_REQUESTCODE_CANCEL,
-                BaskingSyncService.newStopIntent(context),
+                SyncService.newStopIntent(context),
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
         ongoing.iconId = android.R.drawable.stat_notify_sync;
@@ -118,7 +119,7 @@ public class NotificationSyncProgressController {
     }
 
     /**
-     * Generate a new 'ongoing' notification for use by the {@link BaskingSyncService} when going
+     * Generate a new 'ongoing' notification for use by the {@link co.arcs.groove.basking.SyncService} when going
      * into the foreground state.
      */
     public Notification newOngoingNotification(Context context) {
@@ -268,6 +269,14 @@ public class NotificationSyncProgressController {
         if (handleOngoingEvents) {
             ongoing.progressPercent = (int) e.getPercentage();
             invalidateOngoingNotification();
+        }
+    }
+
+    @Subscribe
+    public void onEvent(GeneratePlaylistsFinishedEvent e) {
+        if (handleOngoingEvents) {
+            ongoing.progressPercent = 0;
+            ongoing.subtitle = context.getString(R.string.status_updating_media_library);
         }
     }
 

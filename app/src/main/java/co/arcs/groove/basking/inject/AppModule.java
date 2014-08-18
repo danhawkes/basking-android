@@ -10,6 +10,7 @@ import javax.inject.Singleton;
 
 import co.arcs.groove.basking.App;
 import co.arcs.groove.basking.BackgroundSyncScheduler;
+import co.arcs.groove.basking.SyncManager;
 import co.arcs.groove.basking.pref.AppPreferences;
 import co.arcs.groove.basking.ui.SyncFragment;
 import dagger.Module;
@@ -17,7 +18,10 @@ import dagger.Provides;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-@Module(injects = {App.class, BackgroundSyncScheduler.class, AppPreferences.class, SyncFragment.class})
+@Module(injects = {App.class,
+                   BackgroundSyncScheduler.class,
+                   AppPreferences.class,
+                   SyncFragment.class})
 public class AppModule {
 
     @Qualifier
@@ -42,5 +46,11 @@ public class AppModule {
     @Singleton
     AppPreferences provideAppPreferences() {
         return new AppPreferences(application);
+    }
+
+    @Provides
+    @Singleton
+    SyncManager provideSyncManager(@ApplicationContext Context context) {
+        return new SyncManager(context);
     }
 }

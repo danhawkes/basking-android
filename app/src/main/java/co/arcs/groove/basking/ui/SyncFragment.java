@@ -1,57 +1,48 @@
 package co.arcs.groove.basking.ui;
 
 import android.app.Fragment;
-import android.app.Service;
-import android.content.ComponentName;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
-import android.os.IBinder;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-import com.google.common.eventbus.EventBus;
-
 import javax.inject.Inject;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import co.arcs.groove.basking.App;
-import co.arcs.groove.basking.BaskingSyncService;
-import co.arcs.groove.basking.BaskingSyncService.SyncBinder;
 import co.arcs.groove.basking.R;
+import co.arcs.groove.basking.SyncManager;
+import co.arcs.groove.basking.SyncOperation;
 import co.arcs.groove.basking.pref.AppPreferences;
+import rx.Subscription;
+import rx.android.observables.AndroidObservable;
+import rx.functions.Action1;
 
 public class SyncFragment extends Fragment {
 
     @Inject AppPreferences appPreferences;
+    @Inject SyncManager syncManager;
     @InjectView(R.id.syncButton) Button primaryTextButton;
 
-    private SyncBinder serviceBinder;
     private CircleSyncProgressController circleSyncProgressController;
+    private Subscription syncOperationSubscriber;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ((App) getActivity().getApplication()).inject(this);
-
-        Intent i = new Intent(getActivity(), BaskingSyncService.class);
-        boolean bound = getActivity().bindService(i, serviceConnection, Service.BIND_AUTO_CREATE);
-        if (!bound) {
-            throw new RuntimeException("Failed to bind to sync service, cannot continue");
-        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater,
             ViewGroup container,
             Bundle savedInstanceState) {
-        super.onCreateView(inflater, container, savedInstanceState);
         return inflater.inflate(R.layout.fragment_sync, container, false);
     }
 
@@ -61,6 +52,17 @@ public class SyncFragment extends Fragment {
         ButterKnife.inject(this, view);
         primaryTextButton.setOnClickListener(syncButtonOnClickListener);
         circleSyncProgressController = new CircleSyncProgressController(view);
+
+        syncOperationSubscriber = AndroidObservable.bindFragment(this,
+                syncManager.getOperationObservable()).subscribe(new Action1<SyncOperation>() {
+            @Override
+            public void call(SyncOperation operation) {
+                Log.d("syncfrag", "new op = " + operation);
+                if (operation != null) {
+                    circleSyncProgressController.startDisplayingOperation(operation);
+                }
+            }
+        });
     }
 
     @Override
@@ -79,11 +81,10 @@ public class SyncFragment extends Fragment {
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
-        if (serviceBinder != null) {
-            serviceBinder.getSyncEventBus().unregister(this);
+        if (syncOperationSubscriber != null) {
+            syncOperationSubscriber.unsubscribe();
         }
-        getActivity().unbindService(serviceConnection);
+        super.onDestroy();
     }
 
     private final OnSharedPreferenceChangeListener preferenceChangeListener = new OnSharedPreferenceChangeListener() {
@@ -93,36 +94,18 @@ public class SyncFragment extends Fragment {
         }
     };
 
-    private final ServiceConnection serviceConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            SyncFragment.this.serviceBinder = null;
-        }
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            SyncFragment.this.serviceBinder = (SyncBinder) service;
-            EventBus bus = serviceBinder.getSyncEventBus();
-            bus.register(SyncFragment.this);
-            bus.register(circleSyncProgressController);
-        }
-    };
-
     private OnClickListener syncButtonOnClickListener = new OnClickListener() {
 
         @Override
         public void onClick(View v) {
             if (canSync()) {
-                if (serviceBinder != null) {
-                    serviceBinder.startSync();
-                }
+                syncManager.startSync();
             }
         }
     };
 
     private boolean canSync() {
-        boolean syncOngoing = (serviceBinder != null) && (serviceBinder.isSyncOngoing());
+        boolean syncOngoing = (syncManager.getOperationObservable().toBlocking().first() != null);
         return !syncOngoing && appPreferences.hasLoginCredentials();
     }
 }
